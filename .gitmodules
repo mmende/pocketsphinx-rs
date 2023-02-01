@@ -1,0 +1,3 @@
+[submodule "sys/pocketsphinx"]
+	path = sys/pocketsphinx
+	url = https://github.com/cmusphinx/pocketsphinx.git

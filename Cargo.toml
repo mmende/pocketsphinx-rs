@@ -1,0 +1,15 @@
+[workspace]
+members = ["sys"]
+
+[package]
+name = "pocketsphinx"
+version = "0.1.0"
+edition = "2021"
+description = "Rust bindings for pocketsphinx"
+
+[dependencies]
+pocketsphinx-sys = { path = "sys", version = "0.1.0" }
+
+[build-dependencies]
+bindgen = "0.63.0"
+
