@@ -8,6 +8,7 @@ edition = "2021"
 description = "Rust bindings for pocketsphinx"
 
 [dependencies]
+libc = "0.2.139"
 pocketsphinx-sys = { path = "sys", version = "0.1.0" }
 
 [build-dependencies]

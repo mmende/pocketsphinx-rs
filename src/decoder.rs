@@ -1,19 +1,22 @@
 use std::error::Error;
 
 use crate::config;
+use crate::nbest_iter;
+use crate::search_iter;
+use crate::seg_iter;
 
-pub struct PsDecoder {
+pub struct Decoder {
     inner: *mut pocketsphinx_sys::ps_decoder_t,
 }
 
-impl PsDecoder {
-    pub fn new(config: &config::PsConfig) -> Result<Self, Box<dyn Error>> {
+impl Decoder {
+    pub fn new(config: &config::Config) -> Result<Self, Box<dyn Error>> {
         let decoder = unsafe { pocketsphinx_sys::ps_init(config.get_inner()) };
 
         if decoder.is_null() {
             Err("Failed to initialize decoder".into())
         } else {
-            Ok(PsDecoder { inner: decoder })
+            Ok(Decoder { inner: decoder })
         }
     }
 
@@ -65,6 +68,17 @@ impl PsDecoder {
         }
     }
 
+    /// Get the number of frames of data searched.
+    ///
+    /// Note that there is a delay between this and the number of frames of audio which have been input to the system.
+    /// This is due to the fact that acoustic features are computed using a sliding window of audio, and dynamic features are computed over a sliding window of acoustic features.
+    ///
+    /// # Returns
+    /// Number of frames of speech data which have been recognized so far.
+    pub fn get_n_frames(&mut self) -> i32 {
+        unsafe { pocketsphinx_sys::ps_get_n_frames(self.inner) }
+    }
+
     /// Get hypothesis string and path score.
     ///
     /// # Returns
@@ -82,6 +96,18 @@ impl PsDecoder {
 
             Ok((str.to_string(), score))
         }
+    }
+
+    /// Get posterior probability.
+    ///
+    /// Note: Unless the -bestpath option is enabled, this function will always return zero (corresponding to a posterior probability of 1.0).
+    /// Even if -bestpath is enabled, it will also return zero when called on a partial result.
+    /// Ongoing research into effective confidence annotation for partial hypotheses may result in these restrictions being lifted in future versions.
+    ///
+    /// # Returns
+    /// Posterior probability of the best hypothesis.
+    pub fn get_prob(&mut self) -> i32 {
+        unsafe { pocketsphinx_sys::ps_get_prob(self.inner) }
     }
 
     /// Adds new search using JSGF model.
@@ -294,9 +320,32 @@ impl PsDecoder {
             Ok(Some(str.to_string()))
         }
     }
+
+    /// Get an iterator over the word segmentation for the best hypothesis.
+    ///
+    /// # Returns
+    /// Iterator over the best hypothesis at this point in decoding. None if no hypothesis is available.
+    pub fn get_seg_iter(&mut self) -> Option<seg_iter::SegIter> {
+        seg_iter::SegIter::new(self)
+    }
+
+    /// Returns iterator over current searches
+    pub fn get_search_iter(&mut self) -> search_iter::SearchIter {
+        search_iter::SearchIter::new(self)
+    }
+
+    /// Get an iterator over the best hypotheses.
+    /// The function may return `None` which means that there is no hypothesis available for this utterance.
+    pub fn get_nbest_iter(&mut self) -> Option<nbest_iter::NBestIter> {
+        nbest_iter::NBestIter::new(self)
+    }
+
+    pub fn get_inner(&self) -> *mut pocketsphinx_sys::ps_decoder_t {
+        self.inner
+    }
 }
 
-impl Drop for PsDecoder {
+impl Drop for Decoder {
     fn drop(&mut self) {
         unsafe {
             pocketsphinx_sys::ps_free(self.inner);
