@@ -1,5 +1,7 @@
 use std::error::Error;
 
+use crate::decoder::Decoder;
+
 pub struct Config {
     inner: *mut pocketsphinx_sys::ps_config_t,
     // The decoder owns the config, so we don't want to free it when the config is dropped.
@@ -39,6 +41,11 @@ impl Config {
             inner: retained_inner,
             owned: false,
         }
+    }
+
+    /// Create a decoder with this configuration.
+    pub fn init_decoder(&mut self) -> Result<Decoder, Box<dyn Error>> {
+        Decoder::new(Some(self))
     }
 
     /// Create a configuration by parsing slightly extended JSON.

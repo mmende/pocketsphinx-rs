@@ -13,4 +13,45 @@ Add this to your `Cargo.toml`:
 pocketsphinx = { git = "https://github.com/mmende/pocketsphinx-rs.git", version = "0.1.0" }
 ```
 
+Then simply create a config and a decoder and start decoding:
+
+```rust
+let mut config = Config::new()?;
+config.default_search_args();
+
+let mut decoder = config.init_decoder()?;
+decoder.start_utt()?;
+decoder.process_raw(&audio_i16, false, false)?;
+decoder.end_utt()?;
+
+let (hyp, _score) = decoder.get_hyp()?;
+println!("Hypothesis: {}", hyp);
+```
+
 Examples can be found in the `examples` directory.
+
+## Roadmap
+
+**Implementation**
+
+- [x] Config
+- [x] Decoder
+- [x] NBest-Iterator
+- [x] Seg-Iterator
+- [x] Search-Iterator
+- [x] Endpointing / VAD
+- [ ] FSG
+- [ ] JSGF (partially implemented in decoder)
+- [ ] KWS
+- [ ] N-Gram
+- [ ] Alignment
+- [ ] Latice
+- [ ] MLLR
+- [ ] Logmath
+
+**Examples**
+
+- [x] Default-LM-Recognition
+- [x] JSGF-Recognition
+- [ ] Microphone-Recognition
+- [ ]  ¯\_(ツ)_/¯ - You tell me
