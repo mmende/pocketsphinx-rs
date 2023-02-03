@@ -536,7 +536,8 @@ impl Decoder {
 
     /// Start utterance processing.
     ///
-    /// This function should be called before any utterance data is passed to the decoder. It marks the start of a new utterance and reinitializes internal data structures.
+    /// This function should be called before any utterance data is passed to the decoder.
+    /// It marks the start of a new utterance and reinitializes internal data structures.
     pub fn start_utt(&mut self) -> Result<(), Box<dyn Error>> {
         let _result = unsafe { pocketsphinx_sys::ps_start_utt(self.inner) };
 
@@ -547,7 +548,8 @@ impl Decoder {
     ///
     /// # Arguments
     /// - `data`      - Raw audio data.
-    /// - `no_search` - If `true`, perform feature extraction but don't do any recognition yet. This may be necessary if your processor has trouble doing recognition in real-time.
+    /// - `no_search` - If `true`, perform feature extraction but don't do any recognition yet.
+    ///                 This may be necessary if your processor has trouble doing recognition in real-time.
     /// - `full_utt`  - If `true`, this block of data is a full utterance worth of data. This may allow the recognizer to produce more accurate results.
     ///
     /// # Returns
@@ -598,19 +600,19 @@ impl Decoder {
     /// Get hypothesis string and path score.
     ///
     /// # Returns
-    /// (hypothesis, score) - Tuple containing the hypothesis string and path score.
-    pub fn get_hyp(&mut self) -> Result<(String, i32), Box<dyn Error>> {
+    /// (hypothesis, score) - Tuple containing the hypothesis string and path score or `None` if no hypothesis is available.
+    pub fn get_hyp(&mut self) -> Result<Option<(String, i32)>, Box<dyn Error>> {
         let mut score = 0;
         let c_str = unsafe { pocketsphinx_sys::ps_get_hyp(self.inner, &mut score) };
 
         if c_str.is_null() {
-            Err("Failed to get hypothesis".into())
+            Ok(None)
         } else {
             let str = unsafe { std::ffi::CStr::from_ptr(c_str) }
                 .to_str()
                 .map_err(|_| "Failed to convert hypothesis to string")?;
 
-            Ok((str.to_string(), score))
+            Ok(Some((str.to_string(), score)))
         }
     }
 

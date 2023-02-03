@@ -133,6 +133,41 @@ impl Endpointer {
         unsafe { pocketsphinx_sys::ps_endpointer_speech_end(self.inner) }
     }
 
+    /// Default window in seconds of audio to use for speech start/end decision.
+    ///
+    /// @see https://cmusphinx.github.io/doc/pocketsphinx/endpointer_8h.html#a66481b47838efb4704b9483893cd1c8a
+    pub fn default_window() -> f64 {
+        pocketsphinx_sys::PS_ENDPOINTER_DEFAULT_WINDOW
+    }
+
+    /// Default ratio of frames in window to trigger start/end decision.
+    ///
+    /// @see https://cmusphinx.github.io/doc/pocketsphinx/endpointer_8h.html#a98c9cba29a99e4ef2d08865da20c1d3c
+    pub fn default_ratio() -> f64 {
+        pocketsphinx_sys::PS_ENDPOINTER_DEFAULT_RATIO
+    }
+
+    /// Get the frame size required by the endpointer.
+    ///
+    /// @see https://cmusphinx.github.io/doc/pocketsphinx/endpointer_8h.html#aaa16760235cea4c0a06db70c907bc576
+    pub fn frame_size(&self) -> usize {
+        self.vad().frame_size()
+    }
+
+    /// Get the frame length required by the endpointer.
+    ///
+    /// @see https://cmusphinx.github.io/doc/pocketsphinx/endpointer_8h.html#a65e580fb57829e172863093b8d8bfdf7
+    pub fn frame_length(&self) -> i32 {
+        self.vad().frame_length()
+    }
+
+    /// Get the sample rate required by the endpointer.
+    ///
+    /// @see https://cmusphinx.github.io/doc/pocketsphinx/endpointer_8h.html#a1b52b6d6bf58004f463ad01697b1076f
+    pub fn sample_rate(&self) -> i32 {
+        self.vad().get_sample_rate()
+    }
+
     pub fn get_inner(&self) -> *mut pocketsphinx_sys::ps_endpointer_t {
         self.inner
     }

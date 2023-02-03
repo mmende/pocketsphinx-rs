@@ -25,8 +25,10 @@ decoder.start_utt()?;
 decoder.process_raw(&audio_i16, false, false)?;
 decoder.end_utt()?;
 
-let (hyp, _score) = decoder.get_hyp()?;
-println!("Hypothesis: {}", hyp);
+match decoder.get_hyp()? {
+    Some((hyp, _score)) => println!("Hypothesis: {}", hyp),
+    None => println!("No hypothesis"),
+}
 ```
 
 Examples can be found in the `examples` directory.

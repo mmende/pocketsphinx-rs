@@ -97,6 +97,29 @@ impl VAD {
             _ => unreachable!(),
         }
     }
+
+    /// Default sampling rate for voice activity detector.
+    ///
+    /// @see https://cmusphinx.github.io/doc/pocketsphinx/vad_8h.html#a619d5a74e526164718dfee5ed9a48202
+    pub fn default_sample_rate() -> i32 {
+        16_000
+    }
+
+    /// Default frame length for voice activity detector.
+    ///
+    /// @see https://cmusphinx.github.io/doc/pocketsphinx/vad_8h.html#a42e1e50b03fb55c0b0377cf017c70390
+    pub fn default_frame_length() -> f64 {
+        0.03
+    }
+
+    /// Get the _actual_ length of a frame in seconds.
+    ///
+    /// This may differ from the value requested in `VAD::set_input_params()`.
+    ///
+    /// @see https://cmusphinx.github.io/doc/pocketsphinx/vad_8h.html#a8605289aba98c9ef20a53d77fd1bcfe4
+    pub fn frame_length(&self) -> i32 {
+        self.frame_size() as i32 / self.get_sample_rate()
+    }
 }
 
 impl Drop for VAD {

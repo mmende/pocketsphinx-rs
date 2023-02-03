@@ -43,8 +43,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     decoder.process_raw(&audio_i16, false, false)?;
     decoder.end_utt()?;
 
-    let (hyp, _score) = decoder.get_hyp()?;
-    println!("Hypothesis: {}", hyp);
+    let hyp_result = decoder.get_hyp()?;
+    if let Some((hyp, _score)) = hyp_result {
+        println!("Hypothesis: {}", hyp);
+    } else {
+        println!("No hypothesis");
+    }
 
     Ok(())
 }
