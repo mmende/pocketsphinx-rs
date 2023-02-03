@@ -73,7 +73,7 @@ impl VAD {
     /// Expected sampling rate.
     pub fn get_sample_rate(&self) -> i32 {
         let sample_rate = unsafe { pocketsphinx_sys::ps_vad_sample_rate(self.inner) };
-        sample_rate as i32
+        sample_rate
     }
 
     /// Get the number of samples expected by voice activity detection.
@@ -82,9 +82,9 @@ impl VAD {
     ///
     /// # Returns
     /// Size, in samples, of the frames passed to `VAD::classify()`.
-    pub fn frame_size(&self) -> i32 {
+    pub fn frame_size(&self) -> usize {
         let frame_size = unsafe { pocketsphinx_sys::ps_vad_frame_size(self.inner) };
-        frame_size as i32
+        frame_size
     }
 
     /// Classify a frame as speech or not speech.
