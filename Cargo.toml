@@ -10,7 +10,7 @@ license = "MIT"
 repository = "https://github.com/mmende/pocketsphinx-rs"
 keywords = ["pocketsphinx", "speech", "voice", "recognition", "audio", "endpointing", "JSGF"]
 readme = "README.md"
-author = ["Martin Mende <mmende123@gmail.com>"]
+authors = ["Martin Mende <mmende123@gmail.com>"]
 
 [dependencies]
 libc = "0.2.139"
