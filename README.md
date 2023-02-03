@@ -55,5 +55,6 @@ Examples can be found in the `examples` directory.
 
 - [x] Default-LM-Recognition
 - [x] JSGF-Recognition
+- [x] Segment-Iterator
 - [ ] Microphone-Recognition (with endpointing)
 - [ ]  ¯\\_(ツ)_/¯ - You tell me
