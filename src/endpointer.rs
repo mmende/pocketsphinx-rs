@@ -64,20 +64,29 @@ impl Endpointer {
     ///
     /// # Arguments
     /// - `frame` - Frame of audio. Must be the same length as the frame length specified when the endpointer was created.
-    /// ???
-    pub fn process(&mut self, frame: &[i16]) -> Option<i32> {
+    ///
+    /// # Returns
+    /// `None` if no speech available, or frame size of samples (no more and no less).
+    pub fn process(&mut self, frame: &[i16]) -> Option<i16> {
         let result = unsafe { pocketsphinx_sys::ps_endpointer_process(self.inner, frame.as_ptr()) };
         if result.is_null() {
             None
         } else {
-            Some(result as i32)
+            let frame_size = unsafe { *result };
+            Some(frame_size)
         }
     }
 
     /// Process remaining samples at end of stream.
     ///
     /// Note that the endpointer is not thread-safe. You must call all endpointer functions from the same thread.
-    pub fn end_stream(&mut self, frame: &[i16]) -> Option<i32> {
+    ///
+    /// # Arguments
+    /// - `frame` - Frame of data, must contain `Endpointer::frame_size()` samples or less.
+    ///
+    /// # Returns
+    /// Amount of available samples, or `None` if no none available.
+    pub fn end_stream(&mut self, frame: &[i16]) -> Option<i16> {
         let mut out_nsamp = 0;
         let result = unsafe {
             pocketsphinx_sys::ps_endpointer_end_stream(
@@ -90,7 +99,8 @@ impl Endpointer {
         if result.is_null() {
             None
         } else {
-            Some(result as i32)
+            let available_samples = unsafe { *result };
+            Some(available_samples)
         }
     }
 
