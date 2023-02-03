@@ -6,6 +6,8 @@ The crate closely resembles the [C API of PocketSphinx](https://cmusphinx.github
 
 ## Usage
 
+The crate is currently not published on crates.io, so you have to use it as a git dependency.
+
 Add this to your `Cargo.toml`:
 
 ```toml
