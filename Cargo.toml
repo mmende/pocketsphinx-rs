@@ -5,7 +5,12 @@ members = ["sys"]
 name = "pocketsphinx"
 version = "0.1.0"
 edition = "2021"
-description = "Rust bindings for pocketsphinx"
+description = "Rust bindings for pocketsphinx (non prealpha)"
+license = "MIT"
+repository = "https://github.com/mmende/pocketsphinx-rs"
+keywords = ["pocketsphinx", "speech", "voice", "recognition", "audio", "endpointing", "JSGF"]
+readme = "README.md"
+author = ["Martin Mende <mmende123@gmail.com>"]
 
 [dependencies]
 libc = "0.2.139"

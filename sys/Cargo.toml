@@ -3,6 +3,9 @@ name = "pocketsphinx-sys"
 version = "0.1.0"
 edition = "2021"
 description = "Rust bindings for pocketsphinx"
+license = "MIT"
+repository = "https://github.com/mmende/pocketsphinx-rs"
+author = ["Martin Mende <mmende123@gmail.com>"]
 
 [dependencies]
 
