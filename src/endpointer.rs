@@ -10,20 +10,22 @@ impl Endpointer {
     /// Initialize endpointing.
     ///
     /// # Arguments
-    /// - `window` - Seconds of audio to use in speech start/end decision, or 0 to use the default (PS_ENDPOINTER_DEFAULT_WINDOW).
-    /// - `ratio` - Ratio of frames needed to trigger start/end decision, or 0 for the default (PS_ENDPOINTER_DEFAULT_RATIO).
-    /// - `mode` - "Aggressiveness" of voice activity detection. Stricter values (see ps_vad_mode_t) are less likely to misclassify non-speech as speech.
-    /// - `sample_rate` - Sampling rate of input, or 0 for default (which can be obtained with `VAD::sample_rate()`). Only `8000`, `16000`, `32000`, `48000` are directly supported, others will use the closest supported rate (within reason).
+    /// - `window` - Seconds of audio to use in speech start/end decision, or `None` to use the default (PS_ENDPOINTER_DEFAULT_WINDOW).
+    /// - `ratio` - Ratio of frames needed to trigger start/end decision, or `None` for the default (PS_ENDPOINTER_DEFAULT_RATIO).
+    /// - `mode` - "Aggressiveness" of voice activity detection. Stricter values (see `VADMode`) are less likely to misclassify non-speech as speech.
+    /// - `sample_rate` - Sampling rate of input, or `None` for default (which can be obtained with `VAD::sample_rate()`). Only `8000`, `16000`, `32000`, `48000` are directly supported, others will use the closest supported rate (within reason).
     ///                   Note that this means that the actual frame length may not be exactly the one requested, so you must always use the one returned by `Endpointer::frame_size()` (in samples) or `Endpointer::frame_length()` (in seconds).
     /// - `frame_length` - Requested frame length in seconds, or `None` for the default. Only `0.01`, `0.02`, `0.03` currently supported.
     ///                    **Actual frame length may be different, you must always use `Endpointer::frame_length()` to obtain it.**
     pub fn new(
-        window: f64,
-        ratio: f64,
+        window: Option<f64>,
+        ratio: Option<f64>,
         mode: VADMode,
         sample_rate: Option<i32>,
         frame_length: Option<f64>,
     ) -> Result<Self, Box<dyn Error>> {
+        let window = window.unwrap_or(0.0);
+        let ratio = ratio.unwrap_or(0.0);
         let sample_rate = sample_rate.unwrap_or(0);
         let frame_length = frame_length.unwrap_or(0.0);
         let inner = unsafe {
@@ -40,6 +42,11 @@ impl Endpointer {
         } else {
             Ok(Self { inner })
         }
+    }
+
+    /// Initialize endpointing with default parameters.
+    pub fn default() -> Result<Self, Box<dyn Error>> {
+        Self::new(None, None, VADMode::Loose, None, None)
     }
 
     /// Retain a pointer to endpointer

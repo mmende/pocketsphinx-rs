@@ -26,6 +26,18 @@ impl Config {
         }
     }
 
+    /// Create a configuration with default values.
+    ///
+    /// This is a convenience function that calls `new` and `default_search_args`.
+    ///
+    /// # Returns
+    /// Newly created configuration or an Error on failure (should not happen, but check it anyway).
+    pub fn default() -> Result<Self, Box<dyn Error>> {
+        let mut config = Self::new()?;
+        config.default_search_args();
+        Ok(config)
+    }
+
     /// Create a configuration from a pointer.
     pub fn from_inner(inner: *mut pocketsphinx_sys::ps_config_t) -> Self {
         Config {

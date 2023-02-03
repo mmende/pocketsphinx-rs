@@ -5,10 +5,11 @@
 
 use pocketsphinx::config::Config;
 
-fn main() {
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let audio_path = format!("{}/examples/audio.wav", manifest_dir);
-    let audio = std::fs::read(audio_path).unwrap();
+    let audio = std::fs::read(audio_path)?;
+
     // Skip the header and convert to i16
     let audio_i16: Vec<i16> = audio[44..]
         .chunks_exact(2)
@@ -16,17 +17,17 @@ fn main() {
         .collect();
 
     // Create a config and set default acoustic model, dictionary, and language model
-    let mut config = Config::new().expect("Failed to create config");
-    config.default_search_args();
+    let mut config = Config::default()?;
 
     // Initialize a decoder
     let mut decoder = config.init_decoder().expect("Failed to create decoder");
 
     // Decode audio
-    decoder.start_utt().unwrap();
-    decoder.process_raw(&audio_i16, false, false).unwrap();
-    decoder.end_utt().unwrap();
+    decoder.start_utt()?;
+    decoder.process_raw(&audio_i16, false, false)?;
+    decoder.end_utt()?;
 
-    let (hyp, _score) = decoder.get_hyp().unwrap();
+    let (hyp, _score) = decoder.get_hyp()?;
     println!("Hypothesis: {}", hyp);
+    Ok(())
 }

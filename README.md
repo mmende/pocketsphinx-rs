@@ -18,8 +18,7 @@ pocketsphinx = { git = "https://github.com/mmende/pocketsphinx-rs.git", version 
 Then simply create a config and a decoder and start decoding:
 
 ```rust
-let mut config = Config::new()?;
-config.default_search_args();
+let mut config = Config::default()?;
 
 let mut decoder = config.init_decoder()?;
 decoder.start_utt()?;

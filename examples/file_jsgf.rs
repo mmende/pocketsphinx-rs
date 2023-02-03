@@ -5,10 +5,11 @@
 
 use pocketsphinx::config::Config;
 
-fn main() {
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let audio_path = format!("{}/examples/audio.wav", manifest_dir);
-    let audio = std::fs::read(audio_path).unwrap();
+    let audio = std::fs::read(audio_path)?;
+
     // Skip the header and convert to i16
     let audio_i16: Vec<i16> = audio[44..]
         .chunks_exact(2)
@@ -21,35 +22,29 @@ fn main() {
     let dict = format!("{}/en-us/cmudict-en-us.dict", model_dir);
 
     // Create a config
-    let mut config = Config::new().expect("Failed to create config");
-    config
-        .set_str("hmm", hmm.as_str())
-        .expect("Failed to set hmm");
-    config
-        .set_str("dict", dict.as_str())
-        .expect("Failed to set dict");
+    let mut config = Config::new()?;
+    config.set_str("hmm", hmm.as_str())?;
+    config.set_str("dict", dict.as_str())?;
 
     // To use the default language model instead of a JSGF grammar, uncomment the following lines and comment out the JSGF grammar lines:
     // let lm = format!("{}/en-us/en-us.lm.bin", model_dir);
-    // config.set_str("lm", lm.as_str()).expect("Failed to set lm");
+    // config.set_str("lm", lm.as_str())?;
 
     // Initialize a decoder
-    let mut decoder = config.init_decoder().expect("Failed to create decoder");
+    let mut decoder = config.init_decoder()?;
 
     // Use JSGF grammar
     let jsgf_path = format!("{}/examples/numbers.jsgf", manifest_dir);
-    decoder
-        .add_jsgf_file("numbers", jsgf_path.as_str())
-        .expect("Failed to add JSGF string");
-    decoder
-        .activate_search("numbers")
-        .expect("Failed to activate search");
+    decoder.add_jsgf_file("numbers", jsgf_path.as_str())?;
+    decoder.activate_search("numbers")?;
 
     // Decode audio
-    decoder.start_utt().unwrap();
-    decoder.process_raw(&audio_i16, false, false).unwrap();
-    decoder.end_utt().unwrap();
+    decoder.start_utt()?;
+    decoder.process_raw(&audio_i16, false, false)?;
+    decoder.end_utt()?;
 
-    let (hyp, _score) = decoder.get_hyp().unwrap();
+    let (hyp, _score) = decoder.get_hyp()?;
     println!("Hypothesis: {}", hyp);
+
+    Ok(())
 }
