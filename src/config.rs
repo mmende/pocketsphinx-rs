@@ -2,6 +2,8 @@ use std::error::Error;
 
 pub struct Config {
     inner: *mut pocketsphinx_sys::ps_config_t,
+    // The decoder owns the config, so we don't want to free it when the config is dropped.
+    owned: bool,
 }
 
 impl Config {
@@ -15,7 +17,27 @@ impl Config {
         if config.is_null() {
             Err("Failed to initialize config".into())
         } else {
-            Ok(Config { inner: config })
+            Ok(Config {
+                inner: config,
+                owned: false,
+            })
+        }
+    }
+
+    /// Create a configuration from a pointer.
+    pub fn from_inner(inner: *mut pocketsphinx_sys::ps_config_t) -> Self {
+        Config {
+            inner,
+            owned: false,
+        }
+    }
+
+    /// Retain a pointer to config to prevent it from being dropped.
+    pub fn retain(&self) -> Self {
+        let retained_inner = unsafe { pocketsphinx_sys::ps_config_retain(self.inner) };
+        Config {
+            inner: retained_inner,
+            owned: false,
         }
     }
 
@@ -45,7 +67,10 @@ impl Config {
         if config.is_null() {
             Err("Failed to initialize config".into())
         } else {
-            Ok(Config { inner: config })
+            Ok(Config {
+                inner: config,
+                owned: false,
+            })
         }
     }
 
@@ -357,12 +382,19 @@ impl Config {
     pub fn get_inner(&self) -> *mut pocketsphinx_sys::ps_config_t {
         self.inner
     }
+
+    /// Used by Decoder to avoid double free
+    pub fn set_owned_by_decoder(&mut self, owned: bool) {
+        self.owned = owned;
+    }
 }
 
 impl Drop for Config {
     fn drop(&mut self) {
-        unsafe {
-            pocketsphinx_sys::ps_config_free(self.inner);
+        if !self.owned {
+            unsafe {
+                pocketsphinx_sys::ps_config_free(self.inner);
+            }
         }
     }
 }

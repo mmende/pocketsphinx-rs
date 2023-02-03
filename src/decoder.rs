@@ -13,10 +13,13 @@ impl Decoder {
     /// Initialize the decoder from a configuration.
     ///
     /// # Arguments
-    /// - config - Configuration to use for decoder initialization. If `None`, the decoder will be allocated but not initialized. You can proceed to initialize it with `Decoder::reinit()`.
-    pub fn new(config: Option<&config::Config>) -> Result<Self, Box<dyn Error>> {
+    /// - `config` - Configuration to use for decoder initialization. If `None`, the decoder will be allocated but not initialized. You can proceed to initialize it with `Decoder::reinit()`.
+    pub fn new(config: Option<&mut config::Config>) -> Result<Self, Box<dyn Error>> {
         let config_ptr = match config {
-            Some(config) => config.get_inner(),
+            Some(config) => {
+                config.set_owned_by_decoder(true);
+                config.get_inner()
+            }
             None => std::ptr::null_mut(),
         };
         let decoder = unsafe { pocketsphinx_sys::ps_init(config_ptr) };
@@ -308,7 +311,16 @@ impl Decoder {
         }
     }
 
-    // ps_get_config
+    /// Get the configuration object for this decoder.
+    ///
+    /// # Returns
+    /// The configuration object for this decoder. The decoder automatically drops this object when it is dropped. To avoid this, use `Config::retain()`.
+    pub fn get_config(&self) -> config::Config {
+        let config_inner = unsafe { pocketsphinx_sys::ps_get_config(self.inner) };
+        let mut config = config::Config::from_inner(config_inner);
+        config.set_owned_by_decoder(true);
+        config
+    }
 
     // ps_get_logmath
 
