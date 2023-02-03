@@ -93,20 +93,19 @@ impl Seg {
 
     /// Get language, acoustic, and posterior probabilities from a segmentation iterator.
     ///
-    /// Note: Unless the -bestpath option is enabled, this function will always return zero (corresponding to a posterior probability of 1.0). Even if -bestpath is enabled, it will also return zero when called on a partial result. Ongoing research into effective confidence annotation for partial hypotheses may result in these restrictions being lifted in future versions.
-    ///
     /// # Returns
-    /// Log posterior probability of current segment.
+    /// Log posterior probability of current segment together with acoustic model score, lm score and lm backoff.
     /// Log is expressed in the log-base used in the decoder.
     /// To convert to linear floating-point, use logmath_exp(`get_logmath()`, pprob).
     pub fn get_prob(&self) -> SegProp {
         let mut am_score = 0;
         let mut lm_score = 0;
         let mut lm_back = 0;
-        unsafe {
+        let prob = unsafe {
             pocketsphinx_sys::ps_seg_prob(self.inner, &mut am_score, &mut lm_score, &mut lm_back)
         };
         SegProp {
+            prob,
             am_score,
             lm_score,
             lm_back,
@@ -122,6 +121,10 @@ pub struct SegFrames {
 }
 
 pub struct SegProp {
+    /// Unless the -bestpath option is enabled, this will always be zero (corresponding to a posterior probability of `1.0`).
+    /// Even if -bestpath is enabled, it will also return zero when called on a partial result.
+    /// Ongoing research into effective confidence annotation for partial hypotheses may result in these restrictions being lifted in future versions.
+    pub prob: i32,
     /// Acoustic model score for this segment.
     pub am_score: i32,
     /// Language model score for this segment.
