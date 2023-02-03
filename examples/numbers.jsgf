@@ -1,5 +1,4 @@
 #JSGF V1.0;
 grammar numbers;
 
-public <number> = (one | two | three | four | five | six | seven | eight | nine | zero | ten | <something_wrong>)+;
-<something_wrong> = too | tea;
+public <number> = (one | two | three | four | five | six | seven | eight | nine | zero | ten)+;
