@@ -31,7 +31,15 @@ match decoder.get_hyp()? {
 }
 ```
 
+## Examples
+
 Examples can be found in the `examples` directory.
+
+- [x] [Default-LM-Recognition](examples/file_default.rs)
+- [x] [JSGF-Recognition](examples/file_jsgf.rs)
+- [x] [Segment-Iterator](examples/segments.rs)
+- [x] [Microphone-Recognition (with endpointing)](examples/live.rs)
+- [ ]  ¯\\_(ツ)_/¯ - You tell me
 
 ## Roadmap
 
@@ -51,11 +59,3 @@ Examples can be found in the `examples` directory.
 - [ ] Latice
 - [ ] MLLR
 - [ ] Logmath
-
-**Examples**
-
-- [x] Default-LM-Recognition
-- [x] JSGF-Recognition
-- [x] Segment-Iterator
-- [ ] Microphone-Recognition (with endpointing)
-- [ ]  ¯\\_(ツ)_/¯ - You tell me

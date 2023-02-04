@@ -1,0 +1,6 @@
+#JSGF V1.0;
+grammar commands;
+
+public <command> = (turn | switch) (<state_in_front> | <state_behind>);
+<state_in_front> = (on | off) [the] lights;
+<state_behind> = [the] lights (on | off);
