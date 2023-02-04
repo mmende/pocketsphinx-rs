@@ -76,7 +76,7 @@ impl Endpointer {
     ///
     /// # Returns
     /// `None` if no speech available, or a slice of a frame of `Endpointer::frame_size()` samples (no more and no less).
-    pub fn process(&mut self, frame: &[i16]) -> Option<&[i16]> {
+    pub fn process(&self, frame: &[i16]) -> Option<&[i16]> {
         let result = unsafe { pocketsphinx_sys::ps_endpointer_process(self.inner, frame.as_ptr()) };
         if result.is_null() {
             None
@@ -95,7 +95,7 @@ impl Endpointer {
     ///
     /// # Returns
     /// Slice to available samples, or `None` if none available.
-    pub fn end_stream(&mut self, frame: &[i16]) -> Option<&[i16]> {
+    pub fn end_stream(&self, frame: &[i16]) -> Option<&[i16]> {
         let mut out_nsamp = 0;
         let result = unsafe {
             pocketsphinx_sys::ps_endpointer_end_stream(
