@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Use JSGF grammar
     let jsgf_path = format!("{}/examples/numbers.jsgf", manifest_dir);
     decoder.add_jsgf_file("numbers", jsgf_path.as_str())?;
-    decoder.activate_search("numbers")?;
+    decoder.set_activate_search("numbers")?;
 
     // Decode audio
     decoder.start_utt()?;
