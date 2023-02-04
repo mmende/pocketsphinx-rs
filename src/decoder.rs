@@ -32,7 +32,7 @@ impl Decoder {
     }
 
     /// Actives search with the provided name.
-    pub fn activate_search(&mut self, name: &str) -> Result<(), Box<dyn Error>> {
+    pub fn set_activate_search(&mut self, name: &str) -> Result<(), Box<dyn Error>> {
         let c_name = std::ffi::CString::new(name)?;
 
         let result = unsafe { pocketsphinx_sys::ps_activate_search(self.inner, c_name.as_ptr()) };
