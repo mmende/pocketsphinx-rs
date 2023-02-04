@@ -17,7 +17,6 @@ libc = "0.2.139"
 pocketsphinx-sys = { path = "sys", version = "0.1.0" }
 
 [build-dependencies]
-bindgen = "0.63.0"
 
 [dev-dependencies]
 cpal = "0.15.0"
