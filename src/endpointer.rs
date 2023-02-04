@@ -75,14 +75,14 @@ impl Endpointer {
     /// - `frame` - Frame of audio. Must be the same length as the frame length specified when the endpointer was created.
     ///
     /// # Returns
-    /// `None` if no speech available, or frame size of samples (no more and no less).
-    pub fn process(&mut self, frame: &[i16]) -> Option<i16> {
+    /// `None` if no speech available, or a slice of a frame of `Endpointer::frame_size()` samples (no more and no less).
+    pub fn process(&mut self, frame: &[i16]) -> Option<&[i16]> {
         let result = unsafe { pocketsphinx_sys::ps_endpointer_process(self.inner, frame.as_ptr()) };
         if result.is_null() {
             None
         } else {
-            let frame_size = unsafe { *result };
-            Some(frame_size)
+            let frame = unsafe { std::slice::from_raw_parts(result, self.frame_size()) };
+            Some(frame)
         }
     }
 
@@ -94,8 +94,8 @@ impl Endpointer {
     /// - `frame` - Frame of data, must contain `Endpointer::frame_size()` samples or less.
     ///
     /// # Returns
-    /// Amount of available samples, or `None` if no none available.
-    pub fn end_stream(&mut self, frame: &[i16]) -> Option<i16> {
+    /// Slice to available samples, or `None` if none available.
+    pub fn end_stream(&mut self, frame: &[i16]) -> Option<&[i16]> {
         let mut out_nsamp = 0;
         let result = unsafe {
             pocketsphinx_sys::ps_endpointer_end_stream(
@@ -108,7 +108,8 @@ impl Endpointer {
         if result.is_null() {
             None
         } else {
-            let available_samples = unsafe { *result };
+            let available_samples =
+                unsafe { std::slice::from_raw_parts(result, self.frame_size()) };
             Some(available_samples)
         }
     }
