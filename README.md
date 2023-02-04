@@ -53,7 +53,7 @@ Examples can be found in the `examples` directory.
 - [x] Endpointing / VAD
 - [ ] FSG
 - [ ] JSGF (partially implemented in decoder)
-- [ ] KWS
+- [ ] KWS (partially implemented in decoder)
 - [ ] N-Gram
 - [ ] Alignment
 - [ ] Latice

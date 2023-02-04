@@ -3,7 +3,7 @@
 // The example uses the english default model with a keyphrase spotter and a JSGF grammar (commands.jsgf) that gets activated after the keyphrase `oh mighty computer` was detected.
 // To run this example: `cargo run --example live`.
 
-use std::{borrow::BorrowMut, sync::mpsc};
+use std::sync::mpsc;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use dasp::{interpolate::linear::Linear, signal, Signal};
@@ -88,7 +88,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let frame_size = ep.frame_size();
     let mut frame_cache = Vec::with_capacity(frame_size * 2);
 
-    let mut prev_in_speech = false;
+    // let mut prev_in_speech = false;
 
     for chunk in rx {
         // Extend the cache with the chunk
@@ -104,7 +104,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         for frame in frames {
             // Check if the endpointer had detected speech in the previous chunk
             // This doesn't work yet for some reason therefore we keep track of it manually for now
-            //let prev_in_speech = ep.get_in_speech();
+            let prev_in_speech = ep.get_in_speech();
 
             // Check if the endpointer detects speech in the current chunk
             let process_result = ep.process(frame);
@@ -129,10 +129,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     None => {}
                 }
-                prev_in_speech = true;
-            } else {
-                // If speech was detected in the previous frame, end utterance
-                if prev_in_speech {
+                // Check if speech has ended
+                if !ep.get_in_speech() {
                     let speech_end = ep.get_speech_end();
                     println!("Speech ended at {}", speech_end);
                     decoder.end_utt()?;
@@ -156,7 +154,6 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                         None => {}
                     };
                 }
-                prev_in_speech = false;
             }
         }
         // Remove the processed frames from the cache
