@@ -10,8 +10,8 @@ impl Endpointer {
     /// Initialize endpointing.
     ///
     /// # Arguments
-    /// - `window` - Seconds of audio to use in speech start/end decision, or `None` to use the default (PS_ENDPOINTER_DEFAULT_WINDOW).
-    /// - `ratio` - Ratio of frames needed to trigger start/end decision, or `None` for the default (PS_ENDPOINTER_DEFAULT_RATIO).
+    /// - `window` - Seconds of audio to use in speech start/end decision, or `None` to use the default (`Endpointer::default_window()`).
+    /// - `ratio` - Ratio of frames needed to trigger start/end decision, or `None` for the default (`Endpointer::default_ratio()`).
     /// - `mode` - "Aggressiveness" of voice activity detection. Stricter values (see `VADMode`) are less likely to misclassify non-speech as speech.
     /// - `sample_rate` - Sampling rate of input, or `None` for default (which can be obtained with `VAD::sample_rate()`). Only `8000`, `16000`, `32000`, `48000` are directly supported, others will use the closest supported rate (within reason).
     ///                   Note that this means that the actual frame length may not be exactly the one requested, so you must always use the one returned by `Endpointer::frame_size()` (in samples) or `Endpointer::frame_length()` (in seconds).
@@ -62,7 +62,9 @@ impl Endpointer {
     /// # Returns
     /// `VAD`. The endpointer retains ownership of this object, so you must use `VAD::retain()` if you wish to use it outside of the lifetime of the endpointer.
     pub fn vad(&self) -> VAD {
-        VAD::from_endpointer(self)
+        let mut vad = VAD::from_endpointer(self);
+        vad.set_owned_by_endpointer(true);
+        vad
     }
 
     /// Process a frame of audio, returning a frame if in a speech region.
@@ -119,17 +121,17 @@ impl Endpointer {
     ///
     /// # Returns
     /// `true` if in a speech segment after processing the last frame of data.
-    pub fn in_speech(&self) -> bool {
+    pub fn get_in_speech(&self) -> bool {
         unsafe { pocketsphinx_sys::ps_endpointer_in_speech(self.inner) != 0 }
     }
 
     /// Get the start time of the last speech segment.
-    pub fn speech_start(&self) -> f64 {
+    pub fn get_speech_start(&self) -> f64 {
         unsafe { pocketsphinx_sys::ps_endpointer_speech_start(self.inner) }
     }
 
     /// Get the end time of the last speech segment.
-    pub fn speech_end(&self) -> f64 {
+    pub fn get_speech_end(&self) -> f64 {
         unsafe { pocketsphinx_sys::ps_endpointer_speech_end(self.inner) }
     }
 

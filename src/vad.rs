@@ -4,6 +4,8 @@ use crate::endpointer::Endpointer;
 
 pub struct VAD {
     inner: *mut pocketsphinx_sys::ps_vad_t,
+    // The endpointer owns the VAD, so we need to keep a reference to it to prevent it from being dropped.
+    owned: bool,
 }
 
 impl VAD {
@@ -25,14 +27,20 @@ impl VAD {
         if inner.is_null() {
             Err("Failed to initialize VAD".into())
         } else {
-            Ok(Self { inner })
+            Ok(Self {
+                inner,
+                owned: false,
+            })
         }
     }
 
     /// Initialize voice activity detection from an endpointer.
     pub fn from_endpointer(endpointer: &Endpointer) -> Self {
         let vad = unsafe { pocketsphinx_sys::ps_endpointer_vad(endpointer.get_inner()) };
-        Self { inner: vad }
+        Self {
+            inner: vad,
+            owned: true,
+        }
     }
 
     /// Retain a pointer to voice activity detector.
@@ -120,11 +128,18 @@ impl VAD {
     pub fn frame_length(&self) -> i32 {
         self.frame_size() as i32 / self.get_sample_rate()
     }
+
+    /// Used internally to set whether the VAD should be freed when dropped.
+    pub fn set_owned_by_endpointer(&mut self, owned: bool) {
+        self.owned = owned;
+    }
 }
 
 impl Drop for VAD {
     fn drop(&mut self) {
-        unsafe { pocketsphinx_sys::ps_vad_free(self.inner) };
+        if !self.owned {
+            unsafe { pocketsphinx_sys::ps_vad_free(self.inner) };
+        }
     }
 }
 
