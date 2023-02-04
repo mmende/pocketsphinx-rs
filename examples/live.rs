@@ -3,7 +3,7 @@
 // The example uses the english default model with a keyphrase spotter and a JSGF grammar (commands.jsgf) that gets activated after the keyphrase `oh mighty computer` was detected.
 // To run this example: `cargo run --example live`.
 
-use std::sync::mpsc;
+use std::{borrow::BorrowMut, sync::mpsc};
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use dasp::{interpolate::linear::Linear, signal, Signal};
@@ -66,7 +66,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start the decoder thread
     let mut config = Config::default()?;
     let mut decoder = config.init_decoder()?;
-    let mut ep = Endpointer::default()?;
+    let ep = Endpointer::default()?;
 
     // We add two searches, a keyword spotter and a grammar after the keyword spotter has been detected
     decoder.add_keyphrase("keyword", "oh mighty computer")?;
@@ -117,8 +117,9 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("Speech started at {}", speech_start);
                     decoder.start_utt()?;
                 }
-                // Process the frame
-                decoder.process_raw(frame, false, false)?;
+                // Process the speech_frame
+                let speech_frame = process_result.unwrap();
+                decoder.process_raw(speech_frame, false, false)?;
                 // Check if the decoder has a hypothesis
                 match decoder.get_hyp()? {
                     Some((hyp, _score)) => {
