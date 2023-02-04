@@ -88,8 +88,6 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let frame_size = ep.frame_size();
     let mut frame_cache = Vec::with_capacity(frame_size * 2);
 
-    // let mut prev_in_speech = false;
-
     for chunk in rx {
         // Extend the cache with the chunk
         frame_cache.extend(chunk);
@@ -102,22 +100,19 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         let frames = frame_cache.chunks_exact(frame_size);
         unprocessed_offset -= frames.remainder().len();
         for frame in frames {
-            // Check if the endpointer had detected speech in the previous chunk
-            // This doesn't work yet for some reason therefore we keep track of it manually for now
+            // Check if the endpointer had detected speech in the previous chunk (must be done before calling process)
             let prev_in_speech = ep.get_in_speech();
 
-            // Check if the endpointer detects speech in the current chunk
+            // Check if the endpointer detected speech in the current frame
             let process_result = ep.process(frame);
-            let in_speech = process_result.is_some();
-
-            if in_speech {
+            if process_result.is_some() {
                 // If speech was not detected in the previous frame, start utterance
                 if !prev_in_speech {
                     let speech_start = ep.get_speech_start();
                     println!("Speech started at {}", speech_start);
                     decoder.start_utt()?;
                 }
-                // Process the speech_frame
+                // Process the speech_frame returned by the process method
                 let speech_frame = process_result.unwrap();
                 decoder.process_raw(speech_frame, false, false)?;
                 // Check if the decoder has a hypothesis
