@@ -5,7 +5,7 @@ use crate::config;
 use crate::config::Config;
 use crate::logmath::LogMath;
 use crate::nbest_iter::NBestIter;
-use crate::search_iter::{self, SearchIter};
+use crate::search_iter::SearchIter;
 use crate::seg_iter::SegIter;
 
 pub struct Decoder {
