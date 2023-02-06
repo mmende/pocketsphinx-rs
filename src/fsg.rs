@@ -1,6 +1,6 @@
 use std::{error::Error, ffi::CString};
 
-use crate::{jsgf::JSGF, jsgf_rule_iter::JSGFRule, logmath::LogMath};
+use crate::{decoder::Decoder, jsgf::JSGF, jsgf_rule_iter::JSGFRule, logmath::LogMath};
 
 pub struct FSG {
     inner: *mut pocketsphinx_sys::fsg_model_t,
@@ -47,6 +47,28 @@ impl FSG {
         Self {
             inner,
             retained: false,
+        }
+    }
+
+    /// Get the finite-state grammar set object associated with a search.
+    ///
+    /// # Arguments
+    /// - `decoder` - Decoder object.
+    /// - `name` - Name of FSG search, or `None` for current search
+    pub fn from_decoder(decoder: &Decoder, name: Option<&str>) -> Option<Self> {
+        let c_name_ptr = match name {
+            Some(name) => CString::new(name).unwrap().as_ptr(),
+            None => std::ptr::null(),
+        };
+        let inner = unsafe { pocketsphinx_sys::ps_get_fsg(decoder.get_inner(), c_name_ptr) };
+        if inner.is_null() {
+            None
+        } else {
+            // TODO: Check if the pointer is freed when the decoder is dropped (then it should be retained).
+            Some(Self {
+                inner,
+                retained: false,
+            })
         }
     }
 
@@ -145,6 +167,10 @@ impl FSG {
     pub fn write_symtab_to_file(&self, path: &str) {
         let c_path = CString::new(path).unwrap();
         unsafe { pocketsphinx_sys::fsg_model_writefile_symtab(self.inner, c_path.as_ptr()) };
+    }
+
+    pub fn get_inner(&self) -> *mut pocketsphinx_sys::fsg_model_t {
+        self.inner
     }
 }
 

@@ -3,6 +3,7 @@ use std::error::Error;
 use crate::alignment_iter::Alignment;
 use crate::config;
 use crate::config::Config;
+use crate::fsg::FSG;
 use crate::logmath::LogMath;
 use crate::nbest_iter::NBestIter;
 use crate::search_iter::SearchIter;
@@ -109,9 +110,33 @@ impl Decoder {
         }
     }
 
-    /// ps_get_fsg
+    /// Get the finite-state grammar set object associated with a search.
+    ///
+    /// # Arguments
+    /// - name - Name of the search or `None` for the current search.
+    ///
+    /// # Returns
+    /// The current FSG set object for this decoder, or `None` if name does not correspond to an FSG search.
+    pub fn get_fsg(&self, name: Option<&str>) -> Option<FSG> {
+        FSG::from_decoder(self, name)
+    }
 
-    /// ps_add_fsg
+    /// Adds new search based on finite state grammar.
+    ///
+    /// Associates FSG search with the provided name.
+    /// The search can be activated using `Decoder::set_active_search()`.
+    pub fn add_fsg(&mut self, name: &str, fsg: &mut FSG) -> Result<(), Box<dyn Error>> {
+        let c_name = std::ffi::CString::new(name)?;
+
+        let result =
+            unsafe { pocketsphinx_sys::ps_add_fsg(self.inner, c_name.as_ptr(), fsg.get_inner()) };
+
+        if result == -1 {
+            Err("Failed to add FSG".into())
+        } else {
+            Ok(())
+        }
+    }
 
     /// Adds new search using JSGF model.
     ///
