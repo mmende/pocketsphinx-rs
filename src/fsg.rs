@@ -56,8 +56,12 @@ impl FSG {
     /// - `decoder` - Decoder object.
     /// - `name` - Name of FSG search, or `None` for current search
     pub fn from_decoder(decoder: &Decoder, name: Option<&str>) -> Option<Self> {
-        let c_name_ptr = match name {
-            Some(name) => CString::new(name).unwrap().as_ptr(),
+        let c_name = match name {
+            Some(name) => Some(CString::new(name).unwrap()),
+            None => None,
+        };
+        let c_name_ptr = match c_name {
+            Some(c_name) => c_name.as_ptr(),
             None => std::ptr::null(),
         };
         let inner = unsafe { pocketsphinx_sys::ps_get_fsg(decoder.get_inner(), c_name_ptr) };
