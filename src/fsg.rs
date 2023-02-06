@@ -1,6 +1,6 @@
 use std::{error::Error, ffi::CString};
 
-use crate::logmath::LogMath;
+use crate::{jsgf::JSGF, jsgf_rule_iter::JSGFRule, logmath::LogMath};
 
 pub struct FSG {
     inner: *mut pocketsphinx_sys::fsg_model_t,
@@ -28,6 +28,22 @@ impl FSG {
         let c_jsgf = CString::new(jsgf).unwrap();
         let inner =
             unsafe { pocketsphinx_sys::jsgf_read_string(c_jsgf.as_ptr(), logmath.get_inner(), lw) };
+        Self {
+            inner,
+            retained: false,
+        }
+    }
+
+    /// Build a Sphinx FSG object from a JSGF rule.
+    pub fn from_jsgf(jsgf: &JSGF, rule: &JSGFRule, logmath: &LogMath, lw: f32) -> Self {
+        let inner = unsafe {
+            pocketsphinx_sys::jsgf_build_fsg(
+                jsgf.get_inner(),
+                rule.get_inner(),
+                logmath.get_inner(),
+                lw,
+            )
+        };
         Self {
             inner,
             retained: false,

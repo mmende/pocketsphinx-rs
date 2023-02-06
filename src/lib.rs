@@ -4,6 +4,8 @@ pub mod alignment_iter;
 pub mod config;
 pub mod decoder;
 pub mod endpointer;
+pub mod jsgf;
+pub mod jsgf_rule_iter;
 pub mod logmath;
 pub mod nbest_iter;
 pub mod search_iter;

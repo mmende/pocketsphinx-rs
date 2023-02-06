@@ -54,8 +54,7 @@ Examples can be found in the `examples` directory.
 - [x] Alignment
 - [x] Logmath
 - [x] FSG
-- [ ] JSGF (partially implemented in decoder)
-- [ ] KWS (partially implemented in decoder)
+- [x] JSGF
 - [ ] N-Gram
 - [ ] Latice
 - [ ] MLLR
