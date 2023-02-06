@@ -7,7 +7,7 @@ pub struct SearchIter {
 }
 
 impl SearchIter {
-    pub fn new(decoder: &mut Decoder) -> Self {
+    pub fn from_decoder(decoder: &Decoder) -> Self {
         let inner = unsafe { pocketsphinx_sys::ps_search_iter(decoder.get_inner()) };
         Self {
             inner,

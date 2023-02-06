@@ -2,7 +2,7 @@
 
 This crate provides a rust wrapper around the stable release of PocketSphinx. [After PocketSphinx finally lost it's prealpha status after a decade or so](https://github.com/cmusphinx/pocketsphinx/releases/tag/v5.0.0), the rust bindings from [kriomant](https://github.com/kriomant/pocketsphinx-rs) were no longer up to date with the slightly modified [PocketSphinx API](https://cmusphinx.github.io/doc/pocketsphinx/) which is why I decided to give it a go and create up to date bindings. Furthermore I wanted PocketSphinx to be linked statically to avoid the need to install the PocketSphinx libraries on the target system.
 
-The crate closely resembles the [C API of PocketSphinx](https://cmusphinx.github.io/doc/pocketsphinx/) in a rusty way. So instead of using `ps_decoder_t` you would use a `Decoder` struct and instead of `ps_start_utt` you would use `Decoder::start_utt`.
+The crate closely resembles the [C API of PocketSphinx](https://cmusphinx.github.io/doc/pocketsphinx/) in a rusty way. So instead of using `ps_decoder_t` you would use a `Decoder` struct and instead of `ps_start_utt` you would use `Decoder::start_utt` and so on.
 
 ## Usage
 
@@ -51,11 +51,11 @@ Examples can be found in the `examples` directory.
 - [x] Seg-Iterator
 - [x] Search-Iterator
 - [x] Endpointing / VAD
-- [ ] FSG
+- [x] Alignment
+- [x] Logmath
+- [x] FSG
 - [ ] JSGF (partially implemented in decoder)
 - [ ] KWS (partially implemented in decoder)
 - [ ] N-Gram
-- [ ] Alignment
 - [ ] Latice
 - [ ] MLLR
-- [ ] Logmath

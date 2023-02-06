@@ -1,12 +1,16 @@
 use std::error::Error;
 
+use crate::alignment_iter::Alignment;
 use crate::config;
-use crate::nbest_iter;
-use crate::search_iter;
-use crate::seg_iter;
+use crate::config::Config;
+use crate::logmath::LogMath;
+use crate::nbest_iter::NBestIter;
+use crate::search_iter::{self, SearchIter};
+use crate::seg_iter::SegIter;
 
 pub struct Decoder {
     inner: *mut pocketsphinx_sys::ps_decoder_t,
+    retained: bool,
 }
 
 impl Decoder {
@@ -17,7 +21,7 @@ impl Decoder {
     pub fn new(config: Option<&mut config::Config>) -> Result<Self, Box<dyn Error>> {
         let config_ptr = match config {
             Some(config) => {
-                config.set_owned_by_decoder(true);
+                config.set_retained(true);
                 config.get_inner()
             }
             None => std::ptr::null_mut(),
@@ -27,7 +31,10 @@ impl Decoder {
         if decoder.is_null() {
             Err("Failed to initialize decoder".into())
         } else {
-            Ok(Decoder { inner: decoder })
+            Ok(Decoder {
+                inner: decoder,
+                retained: false,
+            })
         }
     }
 
@@ -45,7 +52,7 @@ impl Decoder {
     }
 
     /// Returns name of current search in decoder
-    pub fn current_search(&mut self) -> Result<String, Box<dyn Error>> {
+    pub fn current_search(&self) -> Result<String, Box<dyn Error>> {
         let c_str = unsafe { pocketsphinx_sys::ps_current_search(self.inner) };
 
         if c_str.is_null() {
@@ -75,8 +82,8 @@ impl Decoder {
     }
 
     /// Returns iterator over current searches
-    pub fn get_search_iter(&mut self) -> search_iter::SearchIter {
-        search_iter::SearchIter::new(self)
+    pub fn get_search_iter(&self) -> SearchIter {
+        SearchIter::from_decoder(self)
     }
 
     /// ps_get_lm
@@ -155,7 +162,7 @@ impl Decoder {
     ///
     /// # Returns
     /// The current keyphrase to spot, or `None` if name does not correspond to a KWS search
-    pub fn get_kws(&mut self, name: Option<&str>) -> Result<Option<String>, Box<dyn Error>> {
+    pub fn get_kws(&self, name: Option<&str>) -> Result<Option<String>, Box<dyn Error>> {
         let c_name_ptr = match name {
             Some(name) => std::ffi::CString::new(name)?.as_ptr(),
             None => std::ptr::null(),
@@ -254,9 +261,34 @@ impl Decoder {
         }
     }
 
-    // ps_set_alignment
+    /// Set up decoder to run phone and state-level alignment.
+    ///
+    /// Unlike the `Decoder::add_*` functions, this activates the search module immediately, since force-alignment is nearly always a single shot.
+    ///
+    /// To align, run or re-run decoding as usual, then call `Decoder::get_alignment()` to get the resulting alignment.
+    /// Note that if you call this function before rerunning decoding, you can obtain the phone and state sequence, but the durations will be invalid (phones and states will inherit the parent word's duration).
+    ///
+    /// # Returns
+    /// `true` if the alignment was successfully set, `false` if an error occured (To align, run or re-run decoding as usual, then call ps_get_alignment() to get the resulting alignment. Note that if you call this function before rerunning decoding, you can obtain the phone and state sequence, but the durations will be invalid (phones and states will inherit the parent word's duration).
+    pub fn set_alignment(&mut self, alignment: &Alignment) -> Result<(), Box<dyn Error>> {
+        let result =
+            unsafe { pocketsphinx_sys::ps_set_alignment(self.inner, alignment.get_inner()) };
+        if result == -1 {
+            Err("Failed to set alignment".into())
+        } else {
+            Ok(())
+        }
+    }
 
-    // ps_get_alignment
+    /// Get the alignment associated with the current search module.
+    ///
+    /// As noted above, if decoding has not been run, this will contain invalid durations, but that may still be useful if you just want to know the state sequence.
+    ///
+    /// # Returns
+    /// Current alignment or `None`. This pointer is owned by the decoder, so you must call `Alignment::retain()` on it if you wish to keep it outside the lifetime of the decoder.
+    pub fn get_alignment(&self) -> Option<Alignment> {
+        Alignment::from_decoder(self)
+    }
 
     /// Reinitialize the decoder with updated configuration.
     ///
@@ -296,7 +328,7 @@ impl Decoder {
 
     // ps_set_cmn
 
-    /// Retain a pointer to the decoder.
+    /// Returns a retained decoder and assures the underlying pointer is not freed before the returned decoder is dropped.
     ///
     /// This increments the reference count on the decoder, allowing it to be shared between multiple parent objects.
     /// In general you will not need to use this function, ever.
@@ -306,23 +338,30 @@ impl Decoder {
     /// A new `Decoder` object with the retained underlying pointer.
     pub fn retain(&mut self) -> Self {
         let retained_inner = unsafe { pocketsphinx_sys::ps_retain(self.inner) };
+        self.retained = true;
         Self {
             inner: retained_inner,
+            retained: false,
         }
     }
 
     /// Get the configuration object for this decoder.
     ///
     /// # Returns
-    /// The configuration object for this decoder. The decoder automatically drops this object when it is dropped. To avoid this, use `Config::retain()`.
-    pub fn get_config(&self) -> config::Config {
-        let config_inner = unsafe { pocketsphinx_sys::ps_get_config(self.inner) };
-        let mut config = config::Config::from_inner(config_inner);
-        config.set_owned_by_decoder(true);
-        config
+    /// The configuration object for this decoder. The decoder automatically drops this object when it is dropped.
+    /// To avoid this, use `Config::retain()`.
+    pub fn get_config(&self) -> Config {
+        Config::from_decoder(self)
     }
 
-    // ps_get_logmath
+    /// Get the log-math computation object for this decoder.
+    ///
+    /// # Returns
+    /// The log-math object for this decoder.
+    /// The decoder owns this log-math. Use `Logmath::retain()` if you wish to reuse it elsewhere.
+    pub fn get_logmath(&self) -> LogMath {
+        LogMath::from_decoder(self)
+    }
 
     // ps_update_mllr
 
@@ -374,11 +413,7 @@ impl Decoder {
     /// Dump the current pronunciation dictionary to a file.
     ///
     /// This function dumps the current pronunciation dictionary to a text file.
-    pub fn save_dict(
-        &mut self,
-        dictfile: &str,
-        format: Option<&str>,
-    ) -> Result<(), Box<dyn Error>> {
+    pub fn save_dict(&self, dictfile: &str, format: Option<&str>) -> Result<(), Box<dyn Error>> {
         let c_dictfile = std::ffi::CString::new(dictfile)?;
 
         let c_format_ptr = if format.is_none() {
@@ -439,7 +474,7 @@ impl Decoder {
     ///
     /// # Returns
     /// Whitespace-spearated phone string describing the pronunciation of the word or `None` if word is not present in the dictionary. The string is allocated and must be freed by the user.
-    pub fn lookup_word(&mut self, word: &str) -> Result<Option<String>, Box<dyn Error>> {
+    pub fn lookup_word(&self, word: &str) -> Result<Option<String>, Box<dyn Error>> {
         let c_word = std::ffi::CString::new(word)?;
 
         let c_str = unsafe { pocketsphinx_sys::ps_lookup_word(self.inner, c_word.as_ptr()) };
@@ -528,7 +563,7 @@ impl Decoder {
         since = "0.1.0",
         note = "This function is retained for compatibility but should not be considered a reliable voice activity detector. It will always return `true` between calls to `Decoder::start_utt()` and `Decoder::end_utt()`. You probably want `Endpointer`, but for single frames of data you can also use `VAD`."
     )]
-    pub fn get_in_speech(&mut self) -> Result<bool, Box<dyn Error>> {
+    pub fn get_in_speech(&self) -> Result<bool, Box<dyn Error>> {
         let result = unsafe { pocketsphinx_sys::ps_get_in_speech(self.inner) };
 
         Ok(result == 1)
@@ -586,7 +621,7 @@ impl Decoder {
     ///
     /// # Returns
     /// Number of frames of speech data which have been recognized so far.
-    pub fn get_n_frames(&mut self) -> i32 {
+    pub fn get_n_frames(&self) -> i32 {
         unsafe { pocketsphinx_sys::ps_get_n_frames(self.inner) }
     }
 
@@ -601,7 +636,7 @@ impl Decoder {
     ///
     /// # Returns
     /// (hypothesis, score) - Tuple containing the hypothesis string and path score or `None` if no hypothesis is available.
-    pub fn get_hyp(&mut self) -> Result<Option<(String, i32)>, Box<dyn Error>> {
+    pub fn get_hyp(&self) -> Result<Option<(String, i32)>, Box<dyn Error>> {
         let mut score = 0;
         let c_str = unsafe { pocketsphinx_sys::ps_get_hyp(self.inner, &mut score) };
 
@@ -624,7 +659,7 @@ impl Decoder {
     ///
     /// # Returns
     /// Posterior probability of the best hypothesis.
-    pub fn get_prob(&mut self) -> i32 {
+    pub fn get_prob(&self) -> i32 {
         unsafe { pocketsphinx_sys::ps_get_prob(self.inner) }
     }
 
@@ -634,18 +669,18 @@ impl Decoder {
     ///
     /// # Returns
     /// Iterator over the best hypothesis at this point in decoding. None if no hypothesis is available.
-    pub fn get_seg_iter(&mut self) -> Option<seg_iter::SegIter> {
-        seg_iter::SegIter::new(self)
+    pub fn get_seg_iter(&self) -> Option<SegIter> {
+        SegIter::from_decoder(self)
     }
 
     /// Get an iterator over the best hypotheses.
     /// The function may return `None` which means that there is no hypothesis available for this utterance.
-    pub fn get_nbest_iter(&mut self) -> Option<nbest_iter::NBestIter> {
-        nbest_iter::NBestIter::new(self)
+    pub fn get_nbest_iter(&self) -> Option<NBestIter> {
+        NBestIter::from_decoder(self)
     }
 
     /// Get performance information for the current utterance.
-    pub fn get_utt_time(&mut self) -> DecoderPerformanceInfo {
+    pub fn get_utt_time(&self) -> DecoderPerformanceInfo {
         let mut speech = 0.0;
         let mut cpu = 0.0;
         let mut wall = 0.0;
@@ -654,7 +689,7 @@ impl Decoder {
     }
 
     // Get overall performance information.
-    pub fn get_all_time(&mut self) -> DecoderPerformanceInfo {
+    pub fn get_all_time(&self) -> DecoderPerformanceInfo {
         let mut speech = 0.0;
         let mut cpu = 0.0;
         let mut wall = 0.0;
@@ -669,8 +704,10 @@ impl Decoder {
 
 impl Drop for Decoder {
     fn drop(&mut self) {
-        unsafe {
-            pocketsphinx_sys::ps_free(self.inner);
+        if !self.retained {
+            unsafe {
+                pocketsphinx_sys::ps_free(self.inner);
+            }
         }
     }
 }

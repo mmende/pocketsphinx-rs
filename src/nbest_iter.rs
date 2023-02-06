@@ -7,7 +7,7 @@ pub struct NBestIter {
 }
 
 impl NBestIter {
-    pub fn new(decoder: &mut Decoder) -> Option<Self> {
+    pub fn from_decoder(decoder: &Decoder) -> Option<Self> {
         let inner = unsafe { pocketsphinx_sys::ps_nbest(decoder.get_inner()) };
         if inner.is_null() {
             return None;

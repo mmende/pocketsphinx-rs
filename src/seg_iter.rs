@@ -7,7 +7,7 @@ pub struct SegIter {
 }
 
 impl SegIter {
-    pub fn new(decoder: &mut Decoder) -> Option<Self> {
+    pub fn from_decoder(decoder: &Decoder) -> Option<Self> {
         let inner = unsafe { pocketsphinx_sys::ps_seg_iter(decoder.get_inner()) };
         if inner.is_null() {
             return None;

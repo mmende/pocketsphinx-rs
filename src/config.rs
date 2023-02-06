@@ -4,8 +4,7 @@ use crate::decoder::Decoder;
 
 pub struct Config {
     inner: *mut pocketsphinx_sys::ps_config_t,
-    // The decoder owns the config, so we don't want to free it when the config is dropped.
-    owned: bool,
+    retained: bool,
 }
 
 impl Config {
@@ -21,7 +20,7 @@ impl Config {
         } else {
             Ok(Config {
                 inner: config,
-                owned: false,
+                retained: false,
             })
         }
     }
@@ -38,20 +37,22 @@ impl Config {
         Ok(config)
     }
 
-    /// Create a configuration from a pointer.
-    pub fn from_inner(inner: *mut pocketsphinx_sys::ps_config_t) -> Self {
-        Config {
+    /// Get config from decoder.
+    pub fn from_decoder(decoder: &Decoder) -> Self {
+        let inner = unsafe { pocketsphinx_sys::ps_get_config(decoder.get_inner()) };
+        Self {
             inner,
-            owned: false,
+            retained: true,
         }
     }
 
-    /// Retain a pointer to config to prevent it from being dropped.
-    pub fn retain(&self) -> Self {
+    /// Returns a retained config and assures the underlying config is not freed before the retained config is dropped.
+    pub fn retain(&mut self) -> Self {
         let retained_inner = unsafe { pocketsphinx_sys::ps_config_retain(self.inner) };
+        self.retained = true;
         Config {
             inner: retained_inner,
-            owned: false,
+            retained: false,
         }
     }
 
@@ -88,7 +89,7 @@ impl Config {
         } else {
             Ok(Config {
                 inner: config,
-                owned: false,
+                retained: false,
             })
         }
     }
@@ -125,7 +126,7 @@ impl Config {
     /// Construct JSON from a configuration object.
     ///
     /// Unlike Config::from_json or Config::extend_from_json, this actually produces valid JSON ;-)
-    pub fn serialize_json(&mut self) -> Result<String, Box<dyn Error>> {
+    pub fn serialize_json(&self) -> Result<String, Box<dyn Error>> {
         let c_json = unsafe { pocketsphinx_sys::ps_config_serialize_json(self.inner) };
 
         if c_json.is_null() {
@@ -402,15 +403,15 @@ impl Config {
         self.inner
     }
 
-    /// Used by Decoder to avoid double free
-    pub fn set_owned_by_decoder(&mut self, owned: bool) {
-        self.owned = owned;
+    /// Used internally to check specify if the underlying pointer should be freed or is owned by another object.
+    pub fn set_retained(&mut self, retained: bool) {
+        self.retained = retained;
     }
 }
 
 impl Drop for Config {
     fn drop(&mut self) {
-        if !self.owned {
+        if !self.retained {
             unsafe {
                 pocketsphinx_sys::ps_config_free(self.inner);
             }

@@ -4,6 +4,7 @@ use crate::vad::{VADMode, VAD};
 
 pub struct Endpointer {
     inner: *mut pocketsphinx_sys::ps_endpointer_t,
+    retained: bool,
 }
 
 impl Endpointer {
@@ -40,7 +41,10 @@ impl Endpointer {
         if inner.is_null() {
             Err("Failed to initialize endpointer".into())
         } else {
-            Ok(Self { inner })
+            Ok(Self {
+                inner,
+                retained: false,
+            })
         }
     }
 
@@ -49,22 +53,25 @@ impl Endpointer {
         Self::new(None, None, VADMode::Loose, None, None)
     }
 
-    /// Retain a pointer to endpointer
+    /// Returns a retained endpointer and assures that the underlying pointer is not freed before the returned endpointer is dropped.
     ///
     /// # Returns
     /// Endpointer with incremented reference count.
-    pub fn retain(&self) {
-        unsafe { pocketsphinx_sys::ps_endpointer_retain(self.inner) };
+    pub fn retain(&mut self) -> Self {
+        let retained_inner = unsafe { pocketsphinx_sys::ps_endpointer_retain(self.inner) };
+        self.retained = true;
+        Self {
+            inner: retained_inner,
+            retained: false,
+        }
     }
 
     /// Get the voice activity detector used by the endpointer.
     ///
     /// # Returns
-    /// `VAD`. The endpointer retains ownership of this object, so you must use `VAD::retain()` if you wish to use it outside of the lifetime of the endpointer.
+    /// The `VAD` used by the endpointer. The endpointer retains ownership of this object, so you must use `VAD::retain()` if you wish to use it outside of the lifetime of the endpointer.
     pub fn vad(&self) -> VAD {
-        let mut vad = VAD::from_endpointer(self);
-        vad.set_owned_by_endpointer(true);
-        vad
+        VAD::from_endpointer(self)
     }
 
     /// Process a frame of audio, returning a frame if in a speech region.
@@ -178,6 +185,8 @@ impl Endpointer {
 
 impl Drop for Endpointer {
     fn drop(&mut self) {
-        unsafe { pocketsphinx_sys::ps_endpointer_free(self.inner) };
+        if !self.retained {
+            unsafe { pocketsphinx_sys::ps_endpointer_free(self.inner) };
+        }
     }
 }
