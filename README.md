@@ -39,6 +39,7 @@ Examples can be found in the `examples` directory.
 - [x] [JSGF-Recognition](examples/file_jsgf.rs)
 - [x] [Segment-Iterator](examples/segments.rs)
 - [x] [Microphone-Recognition (with endpointing)](examples/live.rs)
+- [x] [JSGF-Parsing](examples/parse_jsgf.rs)
 - [ ]  ¯\\_(ツ)_/¯ - You tell me
 
 ## Roadmap

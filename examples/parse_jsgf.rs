@@ -1,3 +1,5 @@
+// This example shows how to use pocketsphinx-rs to parse a JSGF-Grammar and can be run with `cargo run --example parse_jsgf`.
+
 use pocketsphinx::jsgf::JSGF;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
