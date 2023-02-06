@@ -101,11 +101,15 @@ impl FSG {
     /// Any number of comment lines; ignored
     /// ```
     ///
-    /// The FSG spec begins with the line containing the keyword FSG_BEGIN. It has an optional fsg name string. If not present, the FSG has the empty string as its name.
+    /// The FSG spec begins with the line containing the keyword FSG_BEGIN. It has an optional fsg name string.
+    /// If not present, the FSG has the empty string as its name.
     ///
-    /// Following the FSG_BEGIN declaration is the number of states, the start state, and the final state, each on a separate line. States are numbered in the range [0 .. <numberofstate>-1].
+    /// Following the FSG_BEGIN declaration is the number of states, the start state, and the final state, each on a separate line.
+    /// States are numbered in the range [0 .. <numberofstate>-1].
     ///
-    /// These are followed by all the state transitions, each on a separate line, and terminated by the FSG_END line. A state transition has the given probability of being taken, and emits the given word. The word emission is optional; if word-string omitted, it is an epsilon or null transition.
+    /// These are followed by all the state transitions, each on a separate line, and terminated by the FSG_END line.
+    /// A state transition has the given probability of being taken, and emits the given word.
+    /// The word emission is optional; if word-string omitted, it is an epsilon or null transition.
     ///
     /// Comments can also be embedded within the FSG body proper (i.e. between FSG_BEGIN and FSG_END): any line with a # character in col 1 is treated as a comment line.
     ///
