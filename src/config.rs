@@ -142,7 +142,7 @@ impl Config {
     /// Get the type of a parameter and if the parameter is required.
     /// # Returns
     /// A tuple of the parameter type and a boolean indicating whether the parameter is required.
-    pub fn typeof_param(&self, name: &str) -> Result<(ParamType, bool), Box<dyn Error>> {
+    pub fn get_typeof_param(&self, name: &str) -> Result<(ParamType, bool), Box<dyn Error>> {
         let c_name = std::ffi::CString::new(name)?;
         let param_type = unsafe { pocketsphinx_sys::ps_config_typeof(self.inner, c_name.as_ptr()) };
         if param_type == 0 {

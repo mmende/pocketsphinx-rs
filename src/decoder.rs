@@ -53,7 +53,7 @@ impl Decoder {
     }
 
     /// Returns name of current search in decoder
-    pub fn current_search(&self) -> Result<String, Box<dyn Error>> {
+    pub fn get_current_search(&self) -> Result<String, Box<dyn Error>> {
         let c_str = unsafe { pocketsphinx_sys::ps_current_search(self.inner) };
 
         if c_str.is_null() {
