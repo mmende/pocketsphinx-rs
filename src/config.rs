@@ -290,7 +290,7 @@ impl Config {
     ///
     /// Currently, the file must be seekable, so you can't use this on standard input, for instance.
     ///
-    pub fn config_from_soundfile(
+    pub fn from_soundfile(
         &mut self,
         soundfile: &str,
         name: Option<&str>,
@@ -318,10 +318,10 @@ impl Config {
 
     /// Read a WAV header and set configuration parameters.
     ///
-    /// This works like `Config::config_from_soundfile()` but assumes that you already know it's a WAV file.
+    /// This works like `Config::from_soundfile()` but assumes that you already know it's a WAV file.
     ///
-    /// Unlike Config::config_from_soundfile(), the file does _not_ have to be seekable.
-    pub fn config_from_wavfile(
+    /// Unlike Config::from_soundfile(), the file does _not_ have to be seekable.
+    pub fn from_wavfile(
         &mut self,
         wavfile: &str,
         name: Option<&str>,
@@ -349,10 +349,10 @@ impl Config {
 
     /// Read a NIST header and set configuration parameters.
     ///
-    /// This works like `Config::config_from_soundfile()` but assumes that you already know it's a NIST file.
+    /// This works like `Config::from_soundfile()` but assumes that you already know it's a NIST file.
     ///
-    /// Unlike Config::config_from_soundfile(), the file does _not_ have to be seekable.
-    pub fn config_from_nistfile(
+    /// Unlike Config::from_soundfile(), the file does _not_ have to be seekable.
+    pub fn from_nistfile(
         &mut self,
         nistfile: &str,
         name: Option<&str>,
