@@ -96,7 +96,7 @@ impl Seg {
     /// # Returns
     /// Log posterior probability of current segment together with acoustic model score, lm score and lm backoff.
     /// Log is expressed in the log-base used in the decoder.
-    /// To convert to linear floating-point, use logmath_exp(`get_logmath()`, pprob).
+    /// To convert to linear floating-point, use `Decoder::get_logmath().logmath_exp(pprob)`.
     pub fn get_prob(&self) -> SegProp {
         let mut am_score = 0;
         let mut lm_score = 0;
@@ -121,9 +121,7 @@ pub struct SegFrames {
 }
 
 pub struct SegProp {
-    /// Unless the -bestpath option is enabled, this will always be zero (corresponding to a posterior probability of `1.0`).
-    /// Even if -bestpath is enabled, it will also return zero when called on a partial result.
-    /// Ongoing research into effective confidence annotation for partial hypotheses may result in these restrictions being lifted in future versions.
+    /// Log posterior probability of current segment.
     pub prob: i32,
     /// Acoustic model score for this segment.
     pub am_score: i32,
