@@ -1,6 +1,6 @@
 // This example shows how to use pocketsphinx-rs to parse a JSGF-Grammar and can be run with `cargo run --example parse_jsgf`.
 
-use pocketsphinx::jsgf::JSGF;
+use pocketsphinx::{jsgf::JSGF, logmath::LogMath};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
@@ -16,5 +16,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for rule in rules {
         println!("Rule: {}, Puplic: {}", rule.get_name(), rule.is_public());
     }
+    // Let's test if the grammar matches some input
+    let public_rule = jsgf.get_public_rule().unwrap();
+    let logmath = LogMath::init(10.0, 0, false);
+    let fsg = jsgf.build_fsg(&public_rule, &logmath, 1.0);
+    println!(
+        "Accepts 'turn on the lights': {}",
+        fsg.accept("turn on the lights")
+    );
+    println!(
+        "Accepts 'turn the lights off': {}",
+        fsg.accept("turn the lights off")
+    );
+    println!("Accepts 'hello world': {}", fsg.accept("hello world"));
     Ok(())
 }
