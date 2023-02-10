@@ -35,20 +35,20 @@ impl Alignment {
         }
     }
 
-    /// Iterate over the alignment starting at the first word.
-    pub fn words(&self) -> AlignmentIter {
+    /// Get word iterator over the alignment starting at the first word.
+    pub fn get_words(&self) -> AlignmentIter {
         let inner = unsafe { pocketsphinx_sys::ps_alignment_words(self.inner) };
         AlignmentIter::from_inner(inner)
     }
 
-    /// Iterate over the alignment starting at the first phone.
-    pub fn phones(&self) -> AlignmentIter {
+    /// Get phone iterator over the alignment starting at the first phone.
+    pub fn get_phones(&self) -> AlignmentIter {
         let inner = unsafe { pocketsphinx_sys::ps_alignment_phones(self.inner) };
         AlignmentIter::from_inner(inner)
     }
 
-    /// Iterate over the alignment starting at the first state.
-    pub fn states(&self) -> AlignmentIter {
+    /// Get state iterator over the alignment starting at the first state.
+    pub fn get_states(&self) -> AlignmentIter {
         let inner = unsafe { pocketsphinx_sys::ps_alignment_states(self.inner) };
         AlignmentIter::from_inner(inner)
     }
@@ -87,14 +87,14 @@ impl AlignmentIter {
     ///
     /// # Returns
     /// Name of this segment as a string (word, phone, or state number).
-    pub fn name(&self) -> &str {
+    pub fn get_name(&self) -> &str {
         let c_str = unsafe { pocketsphinx_sys::ps_alignment_iter_name(self.inner) };
         let c_str = unsafe { CStr::from_ptr(c_str) };
         c_str.to_str().unwrap()
     }
 
     /// Get the timing and score information for the current segment of an aligment.
-    pub fn seg(&self) -> AlignmentSeg {
+    pub fn get_seg(&self) -> AlignmentSeg {
         let mut start = 0;
         let mut duration = 0;
         let score = unsafe {
@@ -107,11 +107,11 @@ impl AlignmentIter {
         }
     }
 
-    /// Iterate over the children of the current alignment entry.
+    /// Get children iterator of the current alignment entry.
     ///
     /// # Returns
     /// An iterator over the children of the current alignment entry or `None` if there are no children.
-    pub fn children(&self) -> Option<AlignmentIter> {
+    pub fn get_children(&self) -> Option<AlignmentIter> {
         let inner = unsafe { pocketsphinx_sys::ps_alignment_iter_children(self.inner) };
         if inner.is_null() {
             None
