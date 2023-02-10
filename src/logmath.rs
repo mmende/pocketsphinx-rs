@@ -14,7 +14,7 @@ impl LogMath {
     /// - `base` - The base B in which computation is to be done.
     /// - `shift` - Log values are shifted right by this many bits.
     /// - `use_table` - Whether to use an add table or not
-    pub fn init(base: f64, shift: i32, use_table: bool) -> Self {
+    pub fn new(base: f64, shift: i32, use_table: bool) -> Self {
         let use_table = if use_table { 1 } else { 0 };
         let inner = unsafe { pocketsphinx_sys::logmath_init(base, shift, use_table) };
         Self {

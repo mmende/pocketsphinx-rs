@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     // Let's test if the grammar matches some input
     let public_rule = jsgf.get_public_rule().unwrap();
-    let logmath = LogMath::init(10.0, 0, false);
+    let logmath = LogMath::new(10.0, 0, false);
     let fsg = jsgf.build_fsg(&public_rule, &logmath, 1.0);
     println!(
         "Accepts 'turn on the lights': {}",
