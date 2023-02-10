@@ -15,8 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .collect();
 
     // Create a config and set default acoustic model, dictionary, and language model
-    let mut config = Config::new()?;
-    config.default_search_args();
+    let mut config = Config::default()?;
 
     // Initialize a decoder
     let mut decoder = config.init_decoder()?;

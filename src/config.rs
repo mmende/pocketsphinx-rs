@@ -25,15 +25,14 @@ impl Config {
         }
     }
 
-    /// Create a configuration with default values.
-    ///
-    /// This is a convenience function that calls `new` and `default_search_args`.
+    /// Create a configuration with default values and set default search arguments by calling `Config::set_default_search_args()`.
+    /// If you want to set your own search arguments you might want to use `Config::new()` instead.
     ///
     /// # Returns
     /// Newly created configuration or an Error on failure (should not happen, but check it anyway).
     pub fn default() -> Result<Self, Box<dyn Error>> {
         let mut config = Self::new()?;
-        config.default_search_args();
+        config.set_default_search_args();
         Ok(config)
     }
 
@@ -386,6 +385,7 @@ impl Config {
     }
 
     /// Sets default acoustic and language model if they are not set explicitly.
+    /// You can also create a new config with `Config::default()` which will call this method automatically.
     ///
     /// This function fills in the configuration with the default acoustic and language models and dictionary, if (and this is a badly implemented heuristic) they do not seem to be already filled in.
     /// It is preferable for you to call this before doing any other configuration to avoid confusion.
@@ -393,7 +393,7 @@ impl Config {
     /// The default models are looked for in the directory returned by default_modeldir(), or, if the `POCKETSPHINX_PATH` environment variable is set, this function will look there instead.
     ///
     /// If no global model directory was defined at compilation time (this is useful for relocatable installs such as the Python module) and `POCKETSPHINX_PATH` is not set, this will simply do nothing.
-    pub fn default_search_args(&mut self) {
+    pub fn set_default_search_args(&mut self) {
         unsafe {
             pocketsphinx_sys::ps_default_search_args(self.inner);
         }

@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let hmm = format!("{}/en-us/en-us", model_dir);
     let dict = format!("{}/en-us/cmudict-en-us.dict", model_dir);
 
-    // Create a config
+    // Create a config and set the acoustic model, dictionary, and language model manually (instead of calling `Config::default()`)
     let mut config = Config::new()?;
     config.set_str("hmm", hmm.as_str())?;
     config.set_str("dict", dict.as_str())?;
