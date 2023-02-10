@@ -6,13 +6,13 @@ The crate closely resembles the [C API of PocketSphinx](https://cmusphinx.github
 
 ## Usage
 
-The crate is currently not published on crates.io, so you have to use it as a git dependency.
+The crate is currently not published on crates.io, so you have to use it as a git dependency. Also, as the crate is not finalized yet expect breaking changes.
 
 Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-pocketsphinx = { git = "https://github.com/mmende/pocketsphinx-rs.git", version = "0.1.0" }
+pocketsphinx = { git = "https://github.com/mmende/pocketsphinx-rs.git", version = "0.2.0" }
 ```
 
 Then simply create a config and a decoder and start decoding:
