@@ -11,13 +11,13 @@ impl Endpointer {
     /// Initialize endpointing.
     ///
     /// # Arguments
-    /// - `window` - Seconds of audio to use in speech start/end decision, or `None` to use the default (`Endpointer::default_window()`).
-    /// - `ratio` - Ratio of frames needed to trigger start/end decision, or `None` for the default (`Endpointer::default_ratio()`).
-    /// - `mode` - "Aggressiveness" of voice activity detection. Stricter values (see `VADMode`) are less likely to misclassify non-speech as speech.
-    /// - `sample_rate` - Sampling rate of input, or `None` for default (which can be obtained with `VAD::sample_rate()`). Only `8000`, `16000`, `32000`, `48000` are directly supported, others will use the closest supported rate (within reason).
-    ///                   Note that this means that the actual frame length may not be exactly the one requested, so you must always use the one returned by `Endpointer::frame_size()` (in samples) or `Endpointer::frame_length()` (in seconds).
-    /// - `frame_length` - Requested frame length in seconds, or `None` for the default. Only `0.01`, `0.02`, `0.03` currently supported.
-    ///                    **Actual frame length may be different, you must always use `Endpointer::frame_length()` to obtain it.**
+    /// - `window`         - Seconds of audio to use in speech start/end decision, or `None` to use the default (`Endpointer::get_default_window()`).
+    /// - `ratio`          - Ratio of frames needed to trigger start/end decision, or `None` for the default (`Endpointer::get_default_ratio()`).
+    /// - `mode`           - "Aggressiveness" of voice activity detection. Stricter values (see `VADMode`) are less likely to misclassify non-speech as speech.
+    /// - `sample_rate`    - Sampling rate of input, or `None` for default (which can be obtained with `VAD::get_sample_rate()`). Only `8000`, `16000`, `32000`, `48000` are directly supported, others will use the closest supported rate (within reason).
+    ///                      Note that this means that the actual frame length may not be exactly the one requested, so you must always use the one returned by `Endpointer::get_frame_size()` (in samples) or `Endpointer::get_frame_length()` (in seconds).
+    /// - `frame_length`   - Requested frame length in seconds, or `None` for the default. Only `0.01`, `0.02`, `0.03` currently supported.
+    ///                      **Actual frame length may be different, you must always use `Endpointer::get_frame_length()` to obtain it.**
     pub fn new(
         window: Option<f64>,
         ratio: Option<f64>,
@@ -70,7 +70,7 @@ impl Endpointer {
     ///
     /// # Returns
     /// The `VAD` used by the endpointer. The endpointer retains ownership of this object, so you must use `VAD::retain()` if you wish to use it outside of the lifetime of the endpointer.
-    pub fn vad(&self) -> VAD {
+    pub fn get_vad(&self) -> VAD {
         VAD::from_endpointer(self)
     }
 
@@ -88,7 +88,7 @@ impl Endpointer {
         if result.is_null() {
             None
         } else {
-            let frame = unsafe { std::slice::from_raw_parts(result, self.frame_size()) };
+            let frame = unsafe { std::slice::from_raw_parts(result, self.get_frame_size()) };
             Some(frame)
         }
     }
@@ -98,7 +98,7 @@ impl Endpointer {
     /// Note that the endpointer is not thread-safe. You must call all endpointer functions from the same thread.
     ///
     /// # Arguments
-    /// - `frame` - Frame of data, must contain `Endpointer::frame_size()` samples or less.
+    /// - `frame` - Frame of data, must contain `Endpointer::get_frame_size()` samples or less.
     ///
     /// # Returns
     /// Slice to available samples, or `None` if none available.
@@ -116,7 +116,7 @@ impl Endpointer {
             None
         } else {
             let available_samples =
-                unsafe { std::slice::from_raw_parts(result, self.frame_size()) };
+                unsafe { std::slice::from_raw_parts(result, self.get_frame_size()) };
             Some(available_samples)
         }
     }
@@ -146,36 +146,36 @@ impl Endpointer {
     /// Default window in seconds of audio to use for speech start/end decision.
     ///
     /// @see https://cmusphinx.github.io/doc/pocketsphinx/endpointer_8h.html#a66481b47838efb4704b9483893cd1c8a
-    pub fn default_window() -> f64 {
+    pub fn get_default_window() -> f64 {
         pocketsphinx_sys::PS_ENDPOINTER_DEFAULT_WINDOW
     }
 
     /// Default ratio of frames in window to trigger start/end decision.
     ///
     /// @see https://cmusphinx.github.io/doc/pocketsphinx/endpointer_8h.html#a98c9cba29a99e4ef2d08865da20c1d3c
-    pub fn default_ratio() -> f64 {
+    pub fn get_default_ratio() -> f64 {
         pocketsphinx_sys::PS_ENDPOINTER_DEFAULT_RATIO
     }
 
     /// Get the frame size required by the endpointer.
     ///
     /// @see https://cmusphinx.github.io/doc/pocketsphinx/endpointer_8h.html#aaa16760235cea4c0a06db70c907bc576
-    pub fn frame_size(&self) -> usize {
-        self.vad().frame_size()
+    pub fn get_frame_size(&self) -> usize {
+        self.get_vad().get_frame_size()
     }
 
     /// Get the frame length required by the endpointer.
     ///
     /// @see https://cmusphinx.github.io/doc/pocketsphinx/endpointer_8h.html#a65e580fb57829e172863093b8d8bfdf7
-    pub fn frame_length(&self) -> i32 {
-        self.vad().frame_length()
+    pub fn get_frame_length(&self) -> i32 {
+        self.get_vad().get_frame_length()
     }
 
     /// Get the sample rate required by the endpointer.
     ///
     /// @see https://cmusphinx.github.io/doc/pocketsphinx/endpointer_8h.html#a1b52b6d6bf58004f463ad01697b1076f
-    pub fn sample_rate(&self) -> i32 {
-        self.vad().get_sample_rate()
+    pub fn get_sample_rate(&self) -> i32 {
+        self.get_vad().get_sample_rate()
     }
 
     pub fn get_inner(&self) -> *mut pocketsphinx_sys::ps_endpointer_t {

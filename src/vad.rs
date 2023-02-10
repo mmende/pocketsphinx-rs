@@ -11,9 +11,10 @@ impl VAD {
     /// Initialize voice activity detection.
     ///
     /// # Arguments
-    /// - `mode` - "Aggressiveness" of voice activity detection. Stricter values are less likely to misclassify non-speech as speech.
-    /// - `sample_rate` - Sampling rate of input, or `None` for default (which can be obtained with `VAD::sample_rate()`). Only `8000`, `16000`, `32000`, `48000` are directly supported. See `VAD::set_input_params()` for more information.
-    /// - `frame_length` - Frame length in seconds, or `None` for the default. Only `0.01`, `0.02`, `0.03` currently supported. Actual value may differ, you must use `VAD::frame_length()` to obtain it.
+    /// - `mode`            - "Aggressiveness" of voice activity detection. Stricter values are less likely to misclassify non-speech as speech.
+    /// - `sample_rate`     - Sampling rate of input, or `None` for default (which can be obtained with `VAD::get_sample_rate()`). Only `8000`, `16000`, `32000`, `48000` are directly supported.
+    ///                       See `VAD::set_input_params()` for more information.
+    /// - `frame_length`    - Frame length in seconds, or `None` for the default. Only `0.01`, `0.02`, `0.03` currently supported. Actual value may differ, you must use `VAD::get_frame_length()` to obtain it.
     pub fn new(
         mode: VADMode,
         sample_rate: Option<i32>,
@@ -58,10 +59,10 @@ impl VAD {
     /// Set the input parameters for voice activity detection.
     ///
     /// # Arguments
-    /// - `sample_rate` - Sampling rate of input, or `None` for default (which can be obtained with `VAD::vad_sample_rate()`). Only `8000`, `16000`, `32000`, `48000` are directly supported, others will use the closest supported rate (within reason).
-    ///                   Note that this means that the actual frame length may not be exactly the one requested, so you must always use the one returned by `VAD::vad_frame_size()` (in samples) or `VAD::vad_frame_length()` (in seconds).
-    /// - `frame_length` - Requested frame length in seconds, or `None` for the default. Only `0.01`, `0.02`, `0.03` currently supported.
-    ///                    Actual frame length may be different, you must always use `VAD::vad_frame_length()` to obtain it.
+    /// - `sample_rate`     - Sampling rate of input, or `None` for default (which can be obtained with `VAD::get_sample_rate()`). Only `8000`, `16000`, `32000`, `48000` are directly supported, others will use the closest supported rate (within reason).
+    ///                       Note that this means that the actual frame length may not be exactly the one requested, so you must always use the one returned by `VAD::get_frame_size()` (in samples) or `VAD::get_frame_length()` (in seconds).
+    /// - `frame_length`    - Requested frame length in seconds, or `None` for the default. Only `0.01`, `0.02`, `0.03` currently supported.
+    ///                       Actual frame length may be different, you must always use `VAD::get_frame_length()` to obtain it.
     pub fn set_input_params(
         &mut self,
         sample_rate: Option<i32>,
@@ -94,7 +95,7 @@ impl VAD {
     ///
     /// # Returns
     /// Size, in samples, of the frames passed to `VAD::classify()`.
-    pub fn frame_size(&self) -> usize {
+    pub fn get_frame_size(&self) -> usize {
         let frame_size = unsafe { pocketsphinx_sys::ps_vad_frame_size(self.inner) };
         frame_size
     }
@@ -113,14 +114,14 @@ impl VAD {
     /// Default sampling rate for voice activity detector.
     ///
     /// @see https://cmusphinx.github.io/doc/pocketsphinx/vad_8h.html#a619d5a74e526164718dfee5ed9a48202
-    pub fn default_sample_rate() -> i32 {
+    pub fn get_default_sample_rate() -> i32 {
         16_000
     }
 
     /// Default frame length for voice activity detector.
     ///
     /// @see https://cmusphinx.github.io/doc/pocketsphinx/vad_8h.html#a42e1e50b03fb55c0b0377cf017c70390
-    pub fn default_frame_length() -> f64 {
+    pub fn get_default_frame_length() -> f64 {
         0.03
     }
 
@@ -129,8 +130,8 @@ impl VAD {
     /// This may differ from the value requested in `VAD::set_input_params()`.
     ///
     /// @see https://cmusphinx.github.io/doc/pocketsphinx/vad_8h.html#a8605289aba98c9ef20a53d77fd1bcfe4
-    pub fn frame_length(&self) -> i32 {
-        self.frame_size() as i32 / self.get_sample_rate()
+    pub fn get_frame_length(&self) -> i32 {
+        self.get_frame_size() as i32 / self.get_sample_rate()
     }
 }
 

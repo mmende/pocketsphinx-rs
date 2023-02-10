@@ -85,7 +85,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // In order to always process frame size parts of the audio stream
     // we extend a frame_cache with the chunks we receive from the stream
     // and always process frame size parts
-    let frame_size = ep.frame_size();
+    let frame_size = ep.get_frame_size();
     let mut frame_cache = Vec::with_capacity(frame_size * 2);
 
     for chunk in rx {
