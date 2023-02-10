@@ -13,7 +13,7 @@ impl JSGFRuleIter {
         }
     }
 
-    pub fn rule(&self) -> JSGFRule {
+    pub fn get_rule(&self) -> JSGFRule {
         let rule_inner = unsafe { pocketsphinx_sys::jsgf_rule_iter_rule(self.inner) };
         JSGFRule { inner: rule_inner }
     }
