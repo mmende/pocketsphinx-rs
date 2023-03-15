@@ -1,13 +1,13 @@
 // This example shows how to use pocketsphinx-rs to decode audio from a wav file
 // using the english default model with a JSGF grammar that recognizes single digit numbers.
 // To run this example, place a 16-bit, 16kHz, mono wav file named "audio.wav" in
-// the examples directory and run it with `cargo run --example file_jsgf`.
+// the examples/data directory and run it with `cargo run --example file_jsgf`.
 
-use pocketsphinx::config::Config;
+use pocketsphinx::Config;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
-    let audio_path = format!("{}/examples/audio.wav", manifest_dir);
+    let audio_path = format!("{}/examples/data/audio.wav", manifest_dir);
     let audio = std::fs::read(audio_path)?;
 
     // Skip the header and convert to i16
@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut decoder = config.init_decoder()?;
 
     // Use JSGF grammar
-    let jsgf_path = format!("{}/examples/numbers.jsgf", manifest_dir);
+    let jsgf_path = format!("{}/examples/data/numbers.jsgf", manifest_dir);
     decoder.add_jsgf_file("numbers", jsgf_path.as_str())?;
     decoder.set_activate_search("numbers")?;
 

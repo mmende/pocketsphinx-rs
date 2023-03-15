@@ -7,7 +7,7 @@ use std::sync::mpsc;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use dasp::{interpolate::linear::Linear, signal, Signal};
-use pocketsphinx::{config::Config, endpointer::Endpointer};
+use pocketsphinx::{Config, Endpointer};
 
 #[derive(PartialEq)]
 enum SearchMode {
@@ -73,7 +73,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     decoder.add_jsgf_file(
         "commands",
         format!(
-            "{}/examples/commands.jsgf",
+            "{}/examples/data/commands.jsgf",
             std::env::var("CARGO_MANIFEST_DIR")?
         )
         .as_str(),
