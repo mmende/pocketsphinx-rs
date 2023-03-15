@@ -66,23 +66,13 @@ impl Drop for Alignment {
     }
 }
 
-pub struct AlignmentIter {
+// We need a separate struct for the item that is not being dropped prematurely.
+
+pub struct AlignmentIterItem {
     inner: *mut pocketsphinx_sys::ps_alignment_iter_t,
-    reached_end: bool,
-    is_initial: bool,
 }
 
-impl AlignmentIter {
-    pub fn from_inner(inner: *mut pocketsphinx_sys::ps_alignment_iter_t) -> Self {
-        Self {
-            inner,
-            reached_end: false,
-            is_initial: true,
-        }
-    }
-}
-
-impl AlignmentIter {
+impl AlignmentIterItem {
     /// Get the human-readable name of the current segment for an alignment.
     ///
     /// # Returns
@@ -121,8 +111,24 @@ impl AlignmentIter {
     }
 }
 
+pub struct AlignmentIter {
+    inner: *mut pocketsphinx_sys::ps_alignment_iter_t,
+    reached_end: bool,
+    is_initial: bool,
+}
+
+impl AlignmentIter {
+    pub fn from_inner(inner: *mut pocketsphinx_sys::ps_alignment_iter_t) -> Self {
+        Self {
+            inner,
+            reached_end: false,
+            is_initial: true,
+        }
+    }
+}
+
 impl Iterator for AlignmentIter {
-    type Item = AlignmentIter;
+    type Item = AlignmentIterItem;
 
     fn next(&mut self) -> Option<Self::Item> {
         // Skip the first call to ps_alignment_iter_next in order to get the first alignment
@@ -140,11 +146,8 @@ impl Iterator for AlignmentIter {
             return None;
         }
 
-        Some(AlignmentIter {
-            inner: self.inner,
-            reached_end: false,
-            is_initial: true,
-        })
+        let al = AlignmentIterItem { inner: self.inner };
+        Some(al)
     }
 }
 

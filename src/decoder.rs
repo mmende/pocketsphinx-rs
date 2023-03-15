@@ -293,11 +293,17 @@ impl Decoder {
     /// To align, run or re-run decoding as usual, then call `Decoder::get_alignment()` to get the resulting alignment.
     /// Note that if you call this function before rerunning decoding, you can obtain the phone and state sequence, but the durations will be invalid (phones and states will inherit the parent word's duration).
     ///
+    /// # Arguments
+    /// - `alignment` - Usually `None`, which means to construct an alignment from the current search hypothesis (this does not work with allphone or keyword spotting). You can also pass `Some(&Alignment)` here if you have one. The search will retain but not copy it, so after running decoding it will be updated with new durations. You can set starts and durations for words or phones (not states) to constrain the alignment.
+    ///
     /// # Returns
-    /// `true` if the alignment was successfully set, `false` if an error occured (To align, run or re-run decoding as usual, then call ps_get_alignment() to get the resulting alignment. Note that if you call this function before rerunning decoding, you can obtain the phone and state sequence, but the durations will be invalid (phones and states will inherit the parent word's duration).
-    pub fn set_alignment(&mut self, alignment: &Alignment) -> Result<(), Box<dyn Error>> {
-        let result =
-            unsafe { pocketsphinx_sys::ps_set_alignment(self.inner, alignment.get_inner()) };
+    /// `Ok` for success or an error variant (if there is no search hypothesis, or it cannot be aligned due to missing word IDs).
+    pub fn set_alignment(&mut self, alignment: Option<&Alignment>) -> Result<(), Box<dyn Error>> {
+        let alignment_ptr = match alignment {
+            Some(alignment) => alignment.get_inner(),
+            None => std::ptr::null_mut(),
+        };
+        let result = unsafe { pocketsphinx_sys::ps_set_alignment(self.inner, alignment_ptr) };
         if result == -1 {
             Err("Failed to set alignment".into())
         } else {
