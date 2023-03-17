@@ -12,7 +12,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-pocketsphinx = { git = "https://github.com/mmende/pocketsphinx-rs.git", version = "0.3.0" }
+pocketsphinx = { git = "https://github.com/mmende/pocketsphinx-rs.git", version = "0.4.0" }
 ```
 
 Then simply create a config and a decoder and start decoding:
