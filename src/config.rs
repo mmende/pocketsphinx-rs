@@ -26,7 +26,15 @@ impl Config {
     }
 
     /// Create a configuration with default values and set default search arguments by calling `Config::set_default_search_args()`.
-    /// If you want to set your own search arguments you might want to use `Config::new()` instead.
+    /// If you want to set your own search arguments you might want to use `Config::new()` instead:
+    ///
+    /// ```rust
+    /// let config = Config::new()?;
+    /// // Set hmm so that expand_model_config() can find default parameters.
+    /// config.set_string("hmm", "path/to/hmm")?;
+    /// // Set default file paths and parameters based on configuration (without search).
+    /// config.expand_model_config();
+    /// ```
     ///
     /// # Returns
     /// Newly created configuration or an Error on failure (should not happen, but check it anyway).

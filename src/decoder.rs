@@ -1,13 +1,13 @@
 use std::error::Error;
 
 use crate::alignment_iter::Alignment;
-use crate::config;
 use crate::config::Config;
 use crate::fsg::FSG;
 use crate::logmath::LogMath;
 use crate::nbest_iter::NBestIter;
 use crate::search_iter::SearchIter;
 use crate::seg_iter::SegIter;
+use crate::{config, Ngram};
 
 pub struct Decoder {
     inner: *mut pocketsphinx_sys::ps_decoder_t,
@@ -87,9 +87,35 @@ impl Decoder {
         SearchIter::from_decoder(self)
     }
 
-    /// ps_get_lm
+    /// Get the language model or lmset object associated with a search.
+    ///
+    /// # Arguments
+    /// - `name` - Name of language model search, or `None` for current search.
+    ///
+    /// # Returns
+    /// The language model (possibly set of language models) object for this decoder.
+    /// The decoder retains ownership of this pointer, so you should not attempt to free it manually.
+    /// Use `Ngram::retain()` if you wish to reuse it elsewhere.
+    pub fn get_lm(&self, name: Option<&str>) -> Option<Ngram> {
+        Ngram::from_decoder(self, name)
+    }
 
-    /// ps_add_lm
+    /// Adds new search based on N-gram language model.
+    ///
+    /// Associates N-gram search with the provided name. The search can be activated using `Decoder::activate_search()`.
+    pub fn add_lm(&mut self, name: &str, lm: &mut Ngram) -> Result<(), Box<dyn Error>> {
+        let c_name = std::ffi::CString::new(name)?;
+
+        let result =
+            unsafe { pocketsphinx_sys::ps_add_lm(self.inner, c_name.as_ptr(), lm.get_inner()) };
+
+        // TODO: Check if this is correct (undocumented...)
+        if result == -1 {
+            Err("Failed to add LM".into())
+        } else {
+            Ok(())
+        }
+    }
 
     /// Adds new search based on N-gram language model.
     ///
@@ -244,7 +270,23 @@ impl Decoder {
         }
     }
 
-    // ps_add_allphone
+    /// Adds new search based on phone N-gram language model.
+    ///
+    /// Associates N-gram search with the provided name. The search can be activated using `Decoder::activate_search()`.
+    pub fn add_allphone(&mut self, name: &str, lm: &Ngram) -> Result<(), Box<dyn Error>> {
+        let c_name = std::ffi::CString::new(name)?;
+
+        let result = unsafe {
+            pocketsphinx_sys::ps_add_allphone(self.inner, c_name.as_ptr(), lm.get_inner())
+        };
+
+        // TODO: Check if this is correct (undocumented...)
+        if result == -1 {
+            Err("Failed to add allphone".into())
+        } else {
+            Ok(())
+        }
+    }
 
     /// Adds new search based on phone N-gram language model.
     ///

@@ -57,6 +57,6 @@ Examples can be found in the `examples` directory.
 - [x] Logmath
 - [x] FSG
 - [x] JSGF
-- [ ] N-Gram
+- [x] Ngram (untested)
 - [ ] Latice
 - [ ] MLLR
