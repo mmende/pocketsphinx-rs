@@ -7,7 +7,7 @@ use crate::logmath::LogMath;
 use crate::nbest_iter::NBestIter;
 use crate::search_iter::SearchIter;
 use crate::seg_iter::SegIter;
-use crate::{config, Ngram};
+use crate::Ngram;
 
 pub struct Decoder {
     inner: *mut pocketsphinx_sys::ps_decoder_t,
@@ -19,7 +19,7 @@ impl Decoder {
     ///
     /// # Arguments
     /// - `config` - Configuration to use for decoder initialization. If `None`, the decoder will be allocated but not initialized. You can proceed to initialize it with `Decoder::reinit()`.
-    pub fn new(config: Option<&mut config::Config>) -> Result<Self, Box<dyn Error>> {
+    pub fn new(config: Option<&mut Config>) -> Result<Self, Box<dyn Error>> {
         let config_ptr = match config {
             Some(config) => {
                 config.set_retained(true);
@@ -371,7 +371,7 @@ impl Decoder {
     /// Since the acoustic model will be reloaded, changes made to feature extraction parameters may be overridden if a feat.params file is present.
     /// Any searches created with `Decoder::set_search()` or words added to the dictionary with `Decoder::add_word()` will also be lost. To avoid this you can use `Decoder::reinit_feat()`.
     /// The decoder retains ownership of the pointer config, so you should free it when no longer used.
-    pub fn reinit(&mut self, config: &config::Config) -> Result<(), Box<dyn Error>> {
+    pub fn reinit(&mut self, config: &Config) -> Result<(), Box<dyn Error>> {
         let result = unsafe { pocketsphinx_sys::ps_reinit(self.inner, config.get_inner()) };
 
         if result == -1 {
@@ -387,7 +387,7 @@ impl Decoder {
     /// For example, if you change the sample rate or the frame rate, and do not want to reconfigure the rest of the decoder.
     ///
     /// Note that if you have set a custom cepstral mean with `Decoder::set_cmn()`, it will be overridden.
-    pub fn reinit_feat(&mut self, config: &config::Config) -> Result<(), Box<dyn Error>> {
+    pub fn reinit_feat(&mut self, config: &Config) -> Result<(), Box<dyn Error>> {
         let result = unsafe { pocketsphinx_sys::ps_reinit_feat(self.inner, config.get_inner()) };
 
         if result == -1 {
